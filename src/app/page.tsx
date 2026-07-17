@@ -266,7 +266,7 @@ export default function Home() {
 
                   if (isDirect || isDrive) {
                     const videoSrc = isDrive
-                      ? `https://lh3.googleusercontent.com/d/${parsedMedia.videoId}`
+                      ? `/api/video?id=${parsedMedia.videoId}`
                       : playItem.videoUrl;
 
                     return (
