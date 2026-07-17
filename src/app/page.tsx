@@ -31,7 +31,7 @@ interface PortfolioItem {
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState<any>(defaultConfig);
-  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>(defaultConfig.portfolioItems);
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>(defaultConfig.portfolioItems as PortfolioItem[]);
   const [playItem, setPlayItem] = useState<PortfolioItem | null>(null);
 
   // Scroll-linked parallax background values
@@ -58,7 +58,7 @@ export default function Home() {
         if (res.ok) {
           const data = await res.json();
           setConfig(data);
-          setPortfolioItems(data.portfolioItems ?? defaultConfig.portfolioItems);
+          setPortfolioItems((data.portfolioItems ?? defaultConfig.portfolioItems) as PortfolioItem[]);
         }
       } catch {
         // Fall back to static config
