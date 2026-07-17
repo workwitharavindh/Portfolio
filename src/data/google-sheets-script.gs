@@ -127,6 +127,27 @@ function initSheets(ss) {
   if (!projectsSheet) {
     projectsSheet = ss.insertSheet("Projects");
     projectsSheet.appendRow(["ID", "Title", "Category", "VideoUrl", "ThumbnailUrl", "Layout", "IsFeatured"]);
+  } else {
+    // Check if headers are outdated (migrate from old description field to layout field)
+    var lastCol = projectsSheet.getLastColumn();
+    if (lastCol >= 7) {
+      var headers = projectsSheet.getRange(1, 1, 1, 7).getValues()[0];
+      if (headers[5] !== "Layout" || headers[6] !== "IsFeatured") {
+        projectsSheet.getRange(1, 1, 1, 7).setValues([["ID", "Title", "Category", "VideoUrl", "ThumbnailUrl", "Layout", "IsFeatured"]]);
+        // Mismatched columns! Clear data rows so they can be re-populated correctly on next save
+        var lastRow = projectsSheet.getLastRow();
+        if (lastRow > 1) {
+          projectsSheet.deleteRows(2, lastRow - 1);
+        }
+      }
+    } else {
+      // Mismatched column count! Force correct headers
+      projectsSheet.getRange(1, 1, 1, 7).setValues([["ID", "Title", "Category", "VideoUrl", "ThumbnailUrl", "Layout", "IsFeatured"]]);
+      var lastRow = projectsSheet.getLastRow();
+      if (lastRow > 1) {
+        projectsSheet.deleteRows(2, lastRow - 1);
+      }
+    }
   }
   
   var projectsRows = projectsSheet.getLastRow();
