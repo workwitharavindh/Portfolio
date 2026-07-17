@@ -67,15 +67,36 @@ export default function FeaturedWork({
     return ["All", ...Array.from(catsSet)];
   }, [categories, fallbackCategories, items]);
 
-  // Prevent item duplication by tracking unique IDs
+  // Clean items to ensure unique IDs and no duplicates of the actual video
   const uniqueItems = React.useMemo(() => {
-    const seen = new Set<string>();
+    const seenIds = new Set<string>();
+    const seenUrls = new Set<string>();
+    
     return items.filter(item => {
-      if (!item.id) return false;
-      const itemIdStr = String(item.id).trim();
-      if (seen.has(itemIdStr)) return false;
-      seen.add(itemIdStr);
+      // If we've already seen this exact video URL, it's a true repeat
+      const videoUrlStr = String(item.videoUrl || "").trim();
+      if (videoUrlStr && seenUrls.has(videoUrlStr)) {
+        return false;
+      }
+      if (videoUrlStr) {
+        seenUrls.add(videoUrlStr);
+      }
       return true;
+    }).map((item, idx) => {
+      // Ensure the ID is unique for React keys
+      const baseId = String(item.id || `item-${idx}`).trim();
+      let uniqueId = baseId;
+      let counter = 1;
+      while (seenIds.has(uniqueId)) {
+        uniqueId = `${baseId}_dup_${counter}`;
+        counter++;
+      }
+      seenIds.add(uniqueId);
+      
+      return {
+        ...item,
+        id: uniqueId
+      };
     });
   }, [items]);
 
