@@ -49,6 +49,13 @@ export default function Home() {
   const playerVideoRef = useRef<HTMLVideoElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
+  // YouTube IFrame API custom controls
+  const ytIframeRef = useRef<HTMLIFrameElement>(null);
+  const [ytPlaying, setYtPlaying] = useState(true);
+  const [ytMuted, setYtMuted] = useState(true); // muted initially for autoplay
+  const [ytShowControls, setYtShowControls] = useState(false);
+  const ytHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [activeVideoUrl, setActiveVideoUrl] = useState("");
 
   // Fetch latest config at load time
@@ -98,6 +105,37 @@ export default function Home() {
       setDuration(0);
     }
   }, [playItem]);
+
+  // Reset YouTube state on new video
+  useEffect(() => {
+    if (playItem) {
+      setYtPlaying(true);
+      setYtMuted(true);
+      setYtShowControls(false);
+    }
+  }, [playItem]);
+
+  const sendYtCommand = (func: string, args: unknown[] = []) => {
+    ytIframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func, args }), '*'
+    );
+  };
+
+  const handleYtMouseMove = () => {
+    setYtShowControls(true);
+    if (ytHideTimer.current) clearTimeout(ytHideTimer.current);
+    ytHideTimer.current = setTimeout(() => setYtShowControls(false), 3000);
+  };
+
+  const toggleYtPlay = () => {
+    if (ytPlaying) { sendYtCommand('pauseVideo'); setYtPlaying(false); }
+    else { sendYtCommand('playVideo'); setYtPlaying(true); }
+  };
+
+  const toggleYtMute = () => {
+    if (ytMuted) { sendYtCommand('unMute'); setYtMuted(false); }
+    else { sendYtCommand('mute'); setYtMuted(true); }
+  };
 
   const togglePlay = () => {
     const video = playerVideoRef.current;
@@ -296,6 +334,70 @@ export default function Home() {
                           aspectRatio: "16/9",
                         }}
                       />
+                    );
+                  } else if (parsedMedia.platform === "youtube") {
+                    const ytStyle = playItem.layout === "Vertical"
+                      ? { height: "75vh", width: "auto", aspectRatio: "9/16", maxWidth: "100%" } as React.CSSProperties
+                      : { width: "100%", maxWidth: "960px", aspectRatio: "16/9" } as React.CSSProperties;
+                    return (
+                      <div
+                        className="relative flex-shrink-0"
+                        style={{ ...ytStyle, position: "relative", overflow: "hidden", borderRadius: 4 }}
+                        onMouseMove={handleYtMouseMove}
+                        onMouseEnter={handleYtMouseMove}
+                        onMouseLeave={() => {
+                          if (ytHideTimer.current) clearTimeout(ytHideTimer.current);
+                          ytHideTimer.current = setTimeout(() => setYtShowControls(false), 1500);
+                        }}
+                      >
+                        {/* YouTube iframe — no native controls */}
+                        <iframe
+                          ref={ytIframeRef}
+                          src={parsedMedia.embedUrl}
+                          title={playItem.title}
+                          allow="autoplay; encrypted-media; picture-in-picture"
+                          allowFullScreen
+                          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                        />
+                        {/* Custom controls overlay — shows on mouse movement */}
+                        <div
+                          className="absolute inset-0 flex flex-col justify-end transition-opacity duration-500"
+                          style={{
+                            opacity: ytShowControls ? 1 : 0,
+                            background: "linear-gradient(to top, rgba(9,8,9,0.75) 0%, transparent 45%)",
+                            pointerEvents: ytShowControls ? "auto" : "none",
+                          }}
+                        >
+                          <div className="flex gap-4 items-center p-5">
+                            {/* Play/Pause */}
+                            <button
+                              onClick={toggleYtPlay}
+                              className="w-12 h-12 rounded-full flex items-center justify-center bg-[#e1e6e1] hover:bg-[#f73a0b] transition-colors cursor-pointer border-none"
+                            >
+                              {ytPlaying ? (
+                                <svg width="14" height="14" fill="#090809" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                              ) : (
+                                <svg width="14" height="14" fill="#090809" viewBox="0 0 24 24" style={{marginLeft: 2}}><path d="M8 5v14l11-7z"/></svg>
+                              )}
+                            </button>
+                            {/* Mute/Unmute */}
+                            <button
+                              onClick={toggleYtMute}
+                              className="w-12 h-12 rounded-full flex items-center justify-center bg-[#e1e6e1] hover:bg-[#f73a0b] transition-colors cursor-pointer border-none"
+                            >
+                              {ytMuted ? (
+                                <svg width="14" height="14" fill="#090809" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM3 9v6h4l5 5V4L7 9H3zm13.5 3c0 2.22-1.03 4.2-2.5 5.5v2.24c3.08-1.5 5.5-4.66 5.5-7.74s-2.42-6.24-5.5-7.74v2.24c1.47 1.3 2.5 3.28 2.5 5.5z"/><line x1="1" y1="1" x2="23" y2="23" stroke="#090809" strokeWidth="2"/></svg>
+                              ) : (
+                                <svg width="14" height="14" fill="#090809" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                              )}
+                            </button>
+                            {/* Unmuted hint */}
+                            {ytMuted && (
+                              <span className="font-mono text-[9px] text-white/50 tracking-widest uppercase ml-2">Tap 🔊 to unmute</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     );
                   } else {
                     return (

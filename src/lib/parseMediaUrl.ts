@@ -21,7 +21,7 @@ export function parseMediaUrl(url: string): ParsedMedia {
     return {
       platform: "youtube",
       videoId: id,
-      embedUrl: `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&vq=hd1080`,
+      embedUrl: `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&rel=0&modestbranding=1&vq=hd1080&enablejsapi=1&iv_load_policy=3&playsinline=1`,
       thumbnailUrl: `https://img.youtube.com/vi/${id}/maxresdefault.jpg`,
       rawUrl: raw,
     };
