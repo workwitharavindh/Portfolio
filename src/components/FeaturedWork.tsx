@@ -269,104 +269,101 @@ export default function FeaturedWork({
 
         {/* 3-column unified grid for both mobile and desktop view */}
         <div className="grid grid-cols-3 gap-3 md:gap-8 max-w-6xl mx-auto w-full relative min-h-[300px]">
-          <AnimatePresence mode="wait">
-            {visibleItems.map((item) => {
-              const isVertical = item.layout === "Vertical";
+          {visibleItems.map((item) => {
+            const isVertical = item.layout === "Vertical";
 
-              return (
-                <motion.div
-                  key={item.id}
-                  layout
-                  className={`w-full flex flex-col group ${
-                    isVertical 
-                      ? "row-span-2 col-span-1" 
-                      : "col-span-1 row-span-1"
+            return (
+              <motion.div
+                key={`${item.id}-${activeCategory}-${activeSubcategory}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: [0.215, 0.61, 0.355, 1] as const }}
+                className={`w-full flex flex-col group ${
+                  isVertical 
+                    ? "row-span-2 col-span-1" 
+                    : "col-span-1 row-span-1"
+                }`}
+              >
+                {/* Visual Frame Block */}
+                <div
+                  className={`a-product-card w-full relative overflow-hidden bg-[#181818] cursor-pointer ${
+                    isVertical ? "w-full aspect-[3/3.7] md:aspect-[3/3.65]" : "aspect-video w-full"
                   }`}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] as const }}
+                  onMouseEnter={() => handleMouseEnter(item.id)}
+                  onMouseLeave={() => handleMouseLeave(item.id)}
+                  onClick={() => onPlay(item)}
+                  data-mouse="video"
                 >
-                  {/* Visual Frame Block */}
-                  <div
-                    className={`a-product-card w-full relative overflow-hidden bg-[#181818] cursor-pointer ${
-                      isVertical ? "w-full aspect-[3/3.7] md:aspect-[3/3.65]" : "aspect-video w-full"
-                    }`}
-                    onMouseEnter={() => handleMouseEnter(item.id)}
-                    onMouseLeave={() => handleMouseLeave(item.id)}
-                    onClick={() => onPlay(item)}
-                    data-mouse="video"
-                  >
-                    {/* Corner SVG Brackets */}
-                    <svg className="a-work-hover-indicator absolute z-20 pointer-events-none" width="16" height="16" viewBox="0 0 25 25" fill="none" style={{ top: 6, left: 6 }}><path d="M0.5 24.5V0.5H24.5" stroke="#e1e6e1" strokeWidth="1.2" /></svg>
-                    <svg className="a-work-hover-indicator absolute z-20 pointer-events-none" width="16" height="16" viewBox="0 0 25 25" fill="none" style={{ top: 6, right: 6 }}><path d="M0 0.5H24V24.5" stroke="#e1e6e1" strokeWidth="1.2" /></svg>
-                    <svg className="a-work-hover-indicator absolute z-20 pointer-events-none" width="16" height="16" viewBox="0 0 25 25" fill="none" style={{ bottom: 6, right: 6 }}><path d="M0 24H24V0" stroke="#e1e6e1" strokeWidth="1.2" /></svg>
-                    <svg className="a-work-hover-indicator absolute z-20 pointer-events-none" width="16" height="16" viewBox="0 0 25 25" fill="none" style={{ bottom: 6, left: 6 }}><path d="M0.5 0V24H24.5" stroke="#e1e6e1" strokeWidth="1.2" /></svg>
+                  {/* Corner SVG Brackets */}
+                  <svg className="a-work-hover-indicator absolute z-20 pointer-events-none" width="16" height="16" viewBox="0 0 25 25" fill="none" style={{ top: 6, left: 6 }}><path d="M0.5 24.5V0.5H24.5" stroke="#e1e6e1" strokeWidth="1.2" /></svg>
+                  <svg className="a-work-hover-indicator absolute z-20 pointer-events-none" width="16" height="16" viewBox="0 0 25 25" fill="none" style={{ top: 6, right: 6 }}><path d="M0 0.5H24V24.5" stroke="#e1e6e1" strokeWidth="1.2" /></svg>
+                  <svg className="a-work-hover-indicator absolute z-20 pointer-events-none" width="16" height="16" viewBox="0 0 25 25" fill="none" style={{ bottom: 6, right: 6 }}><path d="M0 24H24V0" stroke="#e1e6e1" strokeWidth="1.2" /></svg>
+                  <svg className="a-work-hover-indicator absolute z-20 pointer-events-none" width="16" height="16" viewBox="0 0 25 25" fill="none" style={{ bottom: 6, left: 6 }}><path d="M0.5 0V24H24.5" stroke="#e1e6e1" strokeWidth="1.2" /></svg>
 
-                    {/* Thumbnail and Video */}
-                    {(() => {
-                      const getThumbnailUrl = (pItem: PortfolioItem) => {
-                        if (pItem.thumbnailUrl && pItem.thumbnailUrl.trim() !== "") {
-                          const driveMatch = pItem.thumbnailUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-                          if (driveMatch) {
-                            return `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w800`;
-                          }
-                          return pItem.thumbnailUrl;
+                  {/* Thumbnail and Video */}
+                  {(() => {
+                    const getThumbnailUrl = (pItem: PortfolioItem) => {
+                      if (pItem.thumbnailUrl && pItem.thumbnailUrl.trim() !== "") {
+                        const driveMatch = pItem.thumbnailUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+                        if (driveMatch) {
+                          return `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w800`;
                         }
-                        const parsed = parseMediaUrl(pItem.youtubeUrl || pItem.videoUrl);
-                        if (parsed.platform === "youtube" && parsed.thumbnailUrl) return parsed.thumbnailUrl;
-                        if (parsed.platform === "drive" && parsed.thumbnailUrl) return parsed.thumbnailUrl;
-                        return "";
-                      };
+                        return pItem.thumbnailUrl;
+                      }
+                      const parsed = parseMediaUrl(pItem.youtubeUrl || pItem.videoUrl);
+                      if (parsed.platform === "youtube" && parsed.thumbnailUrl) return parsed.thumbnailUrl;
+                      if (parsed.platform === "drive" && parsed.thumbnailUrl) return parsed.thumbnailUrl;
+                      return "";
+                    };
 
-                      const thumbnailUrlToShow = getThumbnailUrl(item);
-                      const parsed = parseMediaUrl(item.youtubeUrl || item.videoUrl);
-                      const isDirectVideo = parsed.platform === "direct";
-                      const isHovered = hoveredId === item.id;
+                    const thumbnailUrlToShow = getThumbnailUrl(item);
+                    const parsed = parseMediaUrl(item.youtubeUrl || item.videoUrl);
+                    const isDirectVideo = parsed.platform === "direct";
+                    const isHovered = hoveredId === item.id;
 
-                      return (
-                        <div className="absolute inset-0 w-full h-full overflow-hidden">
-                          {thumbnailUrlToShow && (
-                            <img
-                              src={thumbnailUrlToShow}
-                              alt={item.title}
-                              className="absolute inset-0 w-full h-full object-cover z-0 transition-all duration-700 ease-out group-hover:scale-105"
-                              style={{ opacity: isDirectVideo && isHovered ? 0 : 1 }}
-                            />
-                          )}
+                    return (
+                      <div className="absolute inset-0 w-full h-full overflow-hidden">
+                        {thumbnailUrlToShow && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={thumbnailUrlToShow}
+                            alt={item.title}
+                            className="absolute inset-0 w-full h-full object-cover z-0 transition-all duration-700 ease-out group-hover:scale-105"
+                            style={{ opacity: isDirectVideo && isHovered ? 0 : 1 }}
+                          />
+                        )}
 
-                          {isDirectVideo && item.videoUrl && (
-                            <video
-                              ref={(el) => { videoRefs.current[item.id] = el; }}
-                              src={item.videoUrl}
-                              muted
-                              loop
-                              playsInline
-                              preload="metadata"
-                              className="absolute inset-0 w-full h-full object-cover z-10 transition-all duration-700 ease-out group-hover:scale-105"
-                              style={{ opacity: (isHovered || !thumbnailUrlToShow) ? 1 : 0 }}
-                            />
-                          )}
+                        {isDirectVideo && item.videoUrl && (
+                          <video
+                            ref={(el) => { videoRefs.current[item.id] = el; }}
+                            src={item.videoUrl}
+                            muted
+                            loop
+                            playsInline
+                            preload="metadata"
+                            className="absolute inset-0 w-full h-full object-cover z-10 transition-all duration-700 ease-out group-hover:scale-105"
+                            style={{ opacity: (isHovered || !thumbnailUrlToShow) ? 1 : 0 }}
+                          />
+                        )}
 
-                          {!isDirectVideo && (
-                            <div
-                              className="absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-300"
-                              style={{ opacity: isHovered ? 1 : 0, background: "rgba(0,0,0,0.35)" }}
-                            >
-                              <div className="w-10 h-10 md:w-14 md:h-14 rounded-full border border-white/60 flex items-center justify-center backdrop-blur-sm bg-black/30">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z" /></svg>
-                              </div>
+                        {!isDirectVideo && (
+                          <div
+                            className="absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-300"
+                            style={{ opacity: isHovered ? 1 : 0, background: "rgba(0,0,0,0.35)" }}
+                          >
+                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-full border border-white/60 flex items-center justify-center backdrop-blur-sm bg-black/30">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z" /></svg>
                             </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-                    <div className="absolute inset-0 bg-black/5 z-[5] pointer-events-none" />
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  <div className="absolute inset-0 bg-black/5 z-[5] pointer-events-none" />
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
         {hasMore && (
