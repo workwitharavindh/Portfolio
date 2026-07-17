@@ -8,6 +8,7 @@ interface PortfolioItem {
   id: string;
   title: string;
   category: string;
+  subcategory?: string;
   videoUrl: string;
   youtubeUrl?: string;
   thumbnailUrl: string;
@@ -18,20 +19,24 @@ interface PortfolioItem {
 
 export default function FeaturedWork({
   categories = [],
+  subcategories = [],
   items,
   onPlay
 }: {
   categories?: string[];
+  subcategories?: { category: string; name: string }[];
   items: PortfolioItem[];
   onPlay: (i: PortfolioItem) => void;
 }) {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [activeSubcategory, setActiveSubcategory] = useState("All");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [limitRows, setLimitRows] = useState(3);
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
 
   const handleCategoryChange = (cat: string) => {
     setActiveCategory(cat);
+    setActiveSubcategory("All");
     setLimitRows(3);
   };
 
@@ -100,12 +105,29 @@ export default function FeaturedWork({
     });
   }, [items]);
 
+  // Get subcategories for the active category
+  const activeSubcategories = React.useMemo(() => {
+    if (activeCategory === "All") return [];
+    return subcategories.filter(
+      sub => sub.category?.trim().toLowerCase() === activeCategory.trim().toLowerCase()
+    );
+  }, [subcategories, activeCategory]);
+
   const filteredItems = React.useMemo(() => {
     return uniqueItems.filter(item => {
-      if (activeCategory === "All") return true;
-      return item.category?.trim().toLowerCase() === activeCategory.trim().toLowerCase();
+      // Main category check
+      if (activeCategory !== "All") {
+        const catMatch = item.category?.trim().toLowerCase() === activeCategory.trim().toLowerCase();
+        if (!catMatch) return false;
+      }
+      // Subcategory check
+      if (activeSubcategory !== "All") {
+        const subMatch = item.subcategory?.trim().toLowerCase() === activeSubcategory.trim().toLowerCase();
+        if (!subMatch) return false;
+      }
+      return true;
     });
-  }, [uniqueItems, activeCategory]);
+  }, [uniqueItems, activeCategory, activeSubcategory]);
 
   // Visible items calculation based on limitRows in 3-column layout
   const getVisibleItemsForRows = React.useCallback((itemsList: PortfolioItem[], maxRows: number) => {
@@ -207,6 +229,43 @@ export default function FeaturedWork({
             );
           })}
         </div>
+ 
+        {/* Subcategories Filter Bar (Only visible if active category has subcategories) */}
+        {activeSubcategories.length > 0 && (
+          <div className="flex overflow-x-auto gap-2 mb-8 -mt-4 pb-4 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
+            {/* "All" button */}
+            <button
+              onClick={() => setActiveSubcategory("All")}
+              className={`font-mono text-[7px] md:text-[8px] tracking-[0.15em] px-3.5 py-2 uppercase border rounded-full shrink-0 transition-all duration-350 cursor-pointer ${
+                activeSubcategory === "All"
+                  ? "text-white border-white bg-white/10"
+                  : "text-white/40 border-white/5 hover:border-white/10 hover:text-white bg-transparent"
+              }`}
+            >
+              All {activeCategory}
+            </button>
+            {/* Subcategory buttons */}
+            {activeSubcategories.map((sub) => {
+              const isActiveSub = activeSubcategory?.toLowerCase() === sub.name?.toLowerCase();
+              return (
+                <button
+                  key={sub.name}
+                  onClick={() => setActiveSubcategory(sub.name)}
+                  className={`font-mono text-[7px] md:text-[8px] tracking-[0.15em] px-3.5 py-2 uppercase border rounded-full shrink-0 transition-all duration-350 cursor-pointer ${
+                    isActiveSub
+                      ? "text-white border-[#f73a0b] bg-[#f73a0b]/10"
+                      : "text-white/40 border-white/5 hover:border-white/10 hover:text-white bg-transparent"
+                  }`}
+                  style={{
+                    boxShadow: isActiveSub ? "0 0 10px rgba(247,58,11,0.15)" : "none"
+                  }}
+                >
+                  {sub.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* 3-column unified grid for both mobile and desktop view */}
         <div className="grid grid-cols-3 gap-3 md:gap-8 max-w-6xl mx-auto w-full relative min-h-[300px]">

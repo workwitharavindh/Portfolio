@@ -64,6 +64,7 @@ export async function GET() {
           ...base,
           ...sheetsData,
           categories: sheetsData.categories ?? base.categories ?? [],
+          subcategories: sheetsData.subcategories ?? base.subcategories ?? [],
           contactDetails: { ...(base.contactDetails ?? {}), ...(sheetsData.contactDetails ?? {}) },
           portfolioItems: cleanPortfolioItems(
             sheetsData.portfolioItems?.length

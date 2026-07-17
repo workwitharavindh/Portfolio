@@ -126,14 +126,14 @@ function initSheets(ss) {
   var projectsSheet = ss.getSheetByName("Projects");
   if (!projectsSheet) {
     projectsSheet = ss.insertSheet("Projects");
-    projectsSheet.appendRow(["ID", "Title", "Category", "VideoUrl", "ThumbnailUrl", "Layout", "IsFeatured"]);
+    projectsSheet.appendRow(["ID", "Title", "Category", "VideoUrl", "ThumbnailUrl", "Layout", "IsFeatured", "Subcategory"]);
   } else {
     // Check if headers are outdated (migrate from old description field to layout field)
     var lastCol = projectsSheet.getLastColumn();
-    if (lastCol >= 7) {
-      var headers = projectsSheet.getRange(1, 1, 1, 7).getValues()[0];
-      if (headers[5] !== "Layout" || headers[6] !== "IsFeatured") {
-        projectsSheet.getRange(1, 1, 1, 7).setValues([["ID", "Title", "Category", "VideoUrl", "ThumbnailUrl", "Layout", "IsFeatured"]]);
+    if (lastCol >= 8) {
+      var headers = projectsSheet.getRange(1, 1, 1, 8).getValues()[0];
+      if (headers[5] !== "Layout" || headers[6] !== "IsFeatured" || headers[7] !== "Subcategory") {
+        projectsSheet.getRange(1, 1, 1, 8).setValues([["ID", "Title", "Category", "VideoUrl", "ThumbnailUrl", "Layout", "IsFeatured", "Subcategory"]]);
         // Mismatched columns! Clear data rows so they can be re-populated correctly on next save
         var lastRow = projectsSheet.getLastRow();
         if (lastRow > 1) {
@@ -142,7 +142,7 @@ function initSheets(ss) {
       }
     } else {
       // Mismatched column count! Force correct headers
-      projectsSheet.getRange(1, 1, 1, 7).setValues([["ID", "Title", "Category", "VideoUrl", "ThumbnailUrl", "Layout", "IsFeatured"]]);
+      projectsSheet.getRange(1, 1, 1, 8).setValues([["ID", "Title", "Category", "VideoUrl", "ThumbnailUrl", "Layout", "IsFeatured", "Subcategory"]]);
       var lastRow = projectsSheet.getLastRow();
       if (lastRow > 1) {
         projectsSheet.deleteRows(2, lastRow - 1);
@@ -161,7 +161,8 @@ function initSheets(ss) {
         p.videoUrl,
         p.thumbnailUrl,
         p.layout,
-        p.isFeatured
+        p.isFeatured,
+        ""
       ]);
     }
   }
@@ -174,6 +175,20 @@ function initSheets(ss) {
     var defaultCats = ["Commercial Projects", "YouTube Content", "Reels", "Wedding Films"];
     for (var k = 0; k < defaultCats.length; k++) {
       categoriesSheet.appendRow([defaultCats[k]]);
+    }
+  }
+
+  // 4. Subcategories Sheet (Stores video subcategories)
+  var subcategoriesSheet = ss.getSheetByName("Subcategories");
+  if (!subcategoriesSheet) {
+    subcategoriesSheet = ss.insertSheet("Subcategories");
+    subcategoriesSheet.appendRow(["Category", "Subcategory"]);
+    var defaultSubcats = [
+      ["Reels", "Food"],
+      ["Reels", "Fashion"]
+    ];
+    for (var m = 0; m < defaultSubcats.length; m++) {
+      subcategoriesSheet.appendRow(defaultSubcats[m]);
     }
   }
   
@@ -205,7 +220,8 @@ function getConfiguration(ss) {
       videoUrl: projectsData[j][3].toString(),
       thumbnailUrl: projectsData[j][4].toString(),
       layout: projectsData[j][5] ? projectsData[j][5].toString() : "Horizontal",
-      isFeatured: projectsData[j][6] === true || projectsData[j][6].toString().toLowerCase() === "true"
+      isFeatured: projectsData[j][6] === true || projectsData[j][6].toString().toLowerCase() === "true",
+      subcategory: projectsData[j][7] ? projectsData[j][7].toString() : ""
     });
   }
 
@@ -216,6 +232,20 @@ function getConfiguration(ss) {
     for (var k = 1; k < categoriesData.length; k++) {
       if (categoriesData[k][0]) {
         categories.push(categoriesData[k][0].toString());
+      }
+    }
+  }
+
+  var subcategoriesSheet = ss.getSheetByName("Subcategories");
+  var subcategories = [];
+  if (subcategoriesSheet) {
+    var subcategoriesData = subcategoriesSheet.getDataRange().getValues();
+    for (var m = 1; m < subcategoriesData.length; m++) {
+      if (subcategoriesData[m][0] && subcategoriesData[m][1]) {
+        subcategories.push({
+          category: subcategoriesData[m][0].toString(),
+          name: subcategoriesData[m][1].toString()
+        });
       }
     }
   }
@@ -230,6 +260,7 @@ function getConfiguration(ss) {
       youtube: settings.youtube || ""
     },
     categories: categories.length > 0 ? categories : undefined,
+    subcategories: subcategories,
     portfolioItems: portfolioItems
   };
 }
@@ -276,8 +307,23 @@ function saveConfiguration(ss, data) {
       }
     }
   }
+
+  // 3. Save Subcategories
+  var subcategoriesSheet = ss.getSheetByName("Subcategories");
+  if (subcategoriesSheet && data.subcategories && Array.isArray(data.subcategories)) {
+    var lastSubcatRow = subcategoriesSheet.getLastRow();
+    if (lastSubcatRow > 1) {
+      subcategoriesSheet.deleteRows(2, lastSubcatRow - 1);
+    }
+    for (var m = 0; m < data.subcategories.length; m++) {
+      var sub = data.subcategories[m];
+      if (sub && sub.category && sub.name) {
+        subcategoriesSheet.appendRow([sub.category, sub.name]);
+      }
+    }
+  }
   
-  // 3. Save Portfolio items - Clear and rewrite to maintain index order
+  // 4. Save Portfolio items - Clear and rewrite to maintain index order
   var projectsSheet = ss.getSheetByName("Projects");
   if (data.portfolioItems && Array.isArray(data.portfolioItems)) {
     var lastRow = projectsSheet.getLastRow();
@@ -311,7 +357,8 @@ function saveConfiguration(ss, data) {
         vidUrl,
         thumb,
         item.layout || "Horizontal",
-        item.isFeatured !== undefined ? item.isFeatured.toString() : "false"
+        item.isFeatured !== undefined ? item.isFeatured.toString() : "false",
+        item.subcategory || ""
       ]);
     }
   }

@@ -122,6 +122,7 @@ interface ProjectEntry {
   videoUrl: string;
   thumbnailUrl: string;
   category: string;
+  subcategory?: string;
   layout?: "Horizontal" | "Vertical";
 }
 
@@ -139,6 +140,9 @@ export default function AdminPage() {
   const [linkedin, setLinkedin] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [newCategory, setNewCategory] = useState("");
+  const [selectedParentCategory, setSelectedParentCategory] = useState("");
+  const [newSubcategory, setNewSubcategory] = useState("");
+  const [subcategories, setSubcategories] = useState<{ category: string; name: string }[]>([]);
   const [projects, setProjects] = useState<ProjectEntry[]>([]);
 
   const showToast = (msg: string, ok: boolean) => {
@@ -170,6 +174,12 @@ export default function AdminPage() {
           "Color Grading"
         ];
         setCategories(fetchedCats);
+        if (fetchedCats.length > 0) {
+          setSelectedParentCategory(fetchedCats[0]);
+        }
+
+        const fetchedSubcats = data.subcategories ?? [];
+        setSubcategories(fetchedSubcats);
 
         const items = data.portfolioItems ?? [];
         const mapped: ProjectEntry[] = items.length > 0
@@ -179,6 +189,7 @@ export default function AdminPage() {
               videoUrl: item?.videoUrl ?? item?.rawUrl ?? "",
               thumbnailUrl: item?.thumbnailUrl ?? "",
               category: item?.category ?? (fetchedCats[0] || "Featured Work"),
+              subcategory: item?.subcategory ?? "",
               layout: item?.layout ?? "Horizontal",
             }))
           : Array.from({ length: 5 }, (_, i) => ({
@@ -187,6 +198,7 @@ export default function AdminPage() {
               videoUrl: "",
               thumbnailUrl: "",
               category: fetchedCats[0] || "Featured Work",
+              subcategory: "",
               layout: "Horizontal",
             }));
         setProjects(mapped);
@@ -211,6 +223,7 @@ export default function AdminPage() {
           id: p.id || existingItem?.id || `item-${Date.now()}-${i}`,
           title: p.title || `Project ${i + 1}`,
           category: p.category || (categories[0] || "Featured Work"),
+          subcategory: p.subcategory || "",
           videoUrl: p.videoUrl || "",
           thumbnailUrl: p.thumbnailUrl || "",
           layout: p.layout || "Horizontal",
@@ -225,6 +238,7 @@ export default function AdminPage() {
         contactDetails: { email, whatsapp, instagram, linkedin, youtube: existing.contactDetails?.youtube ?? "" },
         portfolioItems,
         categories,
+        subcategories,
       };
 
       const res = await fetch("/api/config", {
@@ -254,13 +268,45 @@ export default function AdminPage() {
       return;
     }
     setCategories(prev => [...prev, trimmed]);
+    if (!selectedParentCategory) {
+      setSelectedParentCategory(trimmed);
+    }
     setNewCategory("");
     showToast(`Added category: ${trimmed}`, true);
   };
 
   const handleDeleteCategory = (catToDelete: string) => {
     setCategories(prev => prev.filter(c => c !== catToDelete));
+    setSubcategories(prev => prev.filter(s => s.category !== catToDelete));
+    if (selectedParentCategory === catToDelete) {
+      const remaining = categories.filter(c => c !== catToDelete);
+      setSelectedParentCategory(remaining[0] || "");
+    }
     showToast(`Deleted category: ${catToDelete}`, true);
+  };
+
+  const handleAddSubcategory = () => {
+    const trimmed = newSubcategory.trim();
+    if (!trimmed) return;
+    if (!selectedParentCategory) {
+      showToast("Select a parent category first", false);
+      return;
+    }
+    const exists = subcategories.some(
+      sub => sub.category.toLowerCase() === selectedParentCategory.toLowerCase() && sub.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (exists) {
+      showToast("Subcategory already exists for this category", false);
+      return;
+    }
+    setSubcategories(prev => [...prev, { category: selectedParentCategory, name: trimmed }]);
+    setNewSubcategory("");
+    showToast(`Added subcategory: ${trimmed} to ${selectedParentCategory}`, true);
+  };
+
+  const handleDeleteSubcategory = (cat: string, nameToDelete: string) => {
+    setSubcategories(prev => prev.filter(sub => !(sub.category === cat && sub.name === nameToDelete)));
+    showToast(`Deleted subcategory: ${nameToDelete}`, true);
   };
 
   const handleAddProject = () => {
@@ -270,6 +316,7 @@ export default function AdminPage() {
       videoUrl: "",
       thumbnailUrl: "",
       category: categories[0] || "Featured Work",
+      subcategory: "",
       layout: "Horizontal"
     }]);
     showToast("Added new video fields", true);
@@ -439,6 +486,124 @@ export default function AdminPage() {
               </div>
             </section>
 
+            {/* ── Manage Subcategories ───────────────────────────────────────── */}
+            <section>
+              <h2 style={sectionHeadingStyle}>Manage Video Subcategories</h2>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+                <div style={fieldStyle}>
+                  <label style={labelStyle}>Select Parent Category</label>
+                  <select
+                    value={selectedParentCategory}
+                    onChange={e => setSelectedParentCategory(e.target.value)}
+                    style={{ ...inputStyle, background: "#0a0a0a", cursor: "pointer" }}
+                    onFocus={e => (e.target.style.borderColor = "#e63946")}
+                    onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                  >
+                    {categories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={fieldStyle}>
+                  <label style={labelStyle}>Add New Subcategory</label>
+                  <div style={{ display: "flex", gap: "1rem" }}>
+                    <input
+                      type="text"
+                      value={newSubcategory}
+                      onChange={e => setNewSubcategory(e.target.value)}
+                      placeholder="e.g. Food, Fashion"
+                      style={{ ...inputStyle, flex: 1 }}
+                      onFocus={e => (e.target.style.borderColor = "#e63946")}
+                      onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddSubcategory();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddSubcategory}
+                      style={{
+                        padding: "0 1.5rem",
+                        background: "#e63946",
+                        color: "#fff",
+                        border: "none",
+                        fontFamily: "Space Mono,monospace",
+                        fontSize: 10,
+                        letterSpacing: "0.2em",
+                        textTransform: "uppercase",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ ...fieldStyle }}>
+                <label style={labelStyle}>Current Subcategories</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "0.5rem" }}>
+                  {categories.map(cat => {
+                    const subs = subcategories.filter(sub => sub.category.toLowerCase() === cat.toLowerCase());
+                    if (subs.length === 0) return null;
+                    return (
+                      <div key={cat} style={{ border: "1px solid rgba(255,255,255,0.05)", padding: "1rem", background: "rgba(255,255,255,0.01)" }}>
+                        <span style={{ fontFamily: "Space Mono,monospace", fontSize: 9, color: "var(--primary)", letterSpacing: "0.2em", textTransform: "uppercase" }}>{cat}</span>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+                          {subs.map(s => (
+                            <div
+                              key={s.name}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                                padding: "0.4rem 0.6rem",
+                                border: "1px solid rgba(255,255,255,0.1)",
+                                background: "rgba(255,255,255,0.02)",
+                                borderRadius: "2px",
+                                fontSize: 11,
+                                fontFamily: "Inter,sans-serif",
+                                color: "#fff"
+                              }}
+                            >
+                              <span>{s.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSubcategory(s.category, s.name)}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  color: "rgba(255,255,255,0.4)",
+                                  cursor: "pointer",
+                                  fontSize: 11,
+                                  padding: 0,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center"
+                                }}
+                                onMouseEnter={e => (e.currentTarget.style.color = "#e63946")}
+                                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {subcategories.length === 0 && (
+                    <span style={{ fontFamily: "Space Mono,monospace", fontSize: 9, color: "rgba(240,240,240,0.25)", letterSpacing: "0.2em" }}>
+                      No subcategories created yet. Add one above.
+                    </span>
+                  )}
+                </div>
+              </div>
+            </section>
+
             {/* ── Project Video URLs ────────────────────────────────────────── */}
             <section>
               <h2 style={sectionHeadingStyle}>Selected Project Videos</h2>
@@ -486,16 +651,34 @@ export default function AdminPage() {
                         onFocus={e => (e.target.style.borderColor = "#e63946")}
                         onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
                       <div style={fieldStyle}>
                         <label style={labelStyle}>Category</label>
-                        <select value={proj.category} onChange={e => updateProject(idx, "category", e.target.value)}
+                        <select value={proj.category} onChange={e => {
+                          const newCat = e.target.value;
+                          updateProject(idx, "category", newCat);
+                          updateProject(idx, "subcategory", "");
+                        }}
                           style={{ ...inputStyle, background: "#0a0a0a", cursor: "pointer" }}
                           onFocus={e => (e.target.style.borderColor = "#e63946")}
                           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}>
                           {categories.map(c => (
                             <option key={c} value={c}>{c}</option>
                           ))}
+                        </select>
+                      </div>
+                      <div style={fieldStyle}>
+                        <label style={labelStyle}>Subcategory</label>
+                        <select value={proj.subcategory ?? ""} onChange={e => updateProject(idx, "subcategory", e.target.value)}
+                          style={{ ...inputStyle, background: "#0a0a0a", cursor: "pointer" }}
+                          onFocus={e => (e.target.style.borderColor = "#e63946")}
+                          onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}>
+                          <option value="">None / All</option>
+                          {subcategories
+                            .filter(sub => sub.category?.toLowerCase() === proj.category?.toLowerCase())
+                            .map(sub => (
+                              <option key={sub.name} value={sub.name}>{sub.name}</option>
+                            ))}
                         </select>
                       </div>
                       <div style={fieldStyle}>

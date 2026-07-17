@@ -20,6 +20,7 @@ interface PortfolioItem {
   id: string;
   title: string;
   category: string;
+  subcategory?: string;
   videoUrl: string;
   youtubeUrl?: string;
   thumbnailUrl: string;
@@ -212,6 +213,7 @@ export default function Home() {
             {/* Selected Works vertical asymmetric grid */}
             <FeaturedWork
               categories={config.categories ?? []}
+              subcategories={config.subcategories ?? []}
               items={portfolioItems}
               onPlay={(item) => setPlayItem(item)}
             />
