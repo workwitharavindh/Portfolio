@@ -108,7 +108,7 @@ export default function MediaEmbed({
             top: 0,
             left: 0,
             right: 0,
-            height: 48,
+            height: 56,
             background: "#090809",
             zIndex: 10,
             pointerEvents: "none"
