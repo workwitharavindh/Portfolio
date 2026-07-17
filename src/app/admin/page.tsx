@@ -145,6 +145,93 @@ export default function AdminPage() {
   const [subcategories, setSubcategories] = useState<{ category: string; name: string }[]>([]);
   const [projects, setProjects] = useState<ProjectEntry[]>([]);
 
+  // Layout Organizer states and handlers
+  const [replicaActiveCategory, setReplicaActiveCategory] = useState("All");
+  const [replicaActiveSubcategory, setReplicaActiveSubcategory] = useState("All");
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+
+  const replicaFallbackCategories = React.useMemo(() => [
+    "Featured Work",
+    "Commercial Projects",
+    "Viral Content",
+    "YouTube Content",
+    "Reels",
+    "Color Grading"
+  ], []);
+
+  const replicaDisplayCategories = React.useMemo(() => {
+    const catsSet = new Set<string>();
+    const baseCats = categories.length > 0 ? categories : replicaFallbackCategories;
+    baseCats.forEach(cat => {
+      if (cat && cat.trim()) catsSet.add(cat.trim());
+    });
+    // Add any category from items to make sure all items are filterable
+    projects.forEach(item => {
+      if (item.category && item.category.trim()) {
+        const trimmed = item.category.trim();
+        const existing = Array.from(catsSet).find(c => c.toLowerCase() === trimmed.toLowerCase());
+        if (!existing) catsSet.add(trimmed);
+      }
+    });
+    return ["All", ...Array.from(catsSet)];
+  }, [categories, replicaFallbackCategories, projects]);
+
+  const replicaActiveSubcategories = React.useMemo(() => {
+    if (replicaActiveCategory === "All") return [];
+    return subcategories.filter(
+      sub => sub.category?.trim().toLowerCase() === replicaActiveCategory.trim().toLowerCase()
+    );
+  }, [subcategories, replicaActiveCategory]);
+
+  const replicaUniqueItems = React.useMemo(() => {
+    const seenUrls = new Set<string>();
+    return projects.filter(item => {
+      const videoUrlStr = String(item.videoUrl || "").trim();
+      if (videoUrlStr && seenUrls.has(videoUrlStr)) return false;
+      if (videoUrlStr) seenUrls.add(videoUrlStr);
+      return true;
+    });
+  }, [projects]);
+
+  const replicaFilteredItems = React.useMemo(() => {
+    return replicaUniqueItems.filter(item => {
+      if (replicaActiveCategory !== "All") {
+        const catMatch = item.category?.trim().toLowerCase() === replicaActiveCategory.trim().toLowerCase();
+        if (!catMatch) return false;
+      }
+      if (replicaActiveSubcategory !== "All") {
+        const subMatch = item.subcategory?.trim().toLowerCase() === replicaActiveSubcategory.trim().toLowerCase();
+        if (!subMatch) return false;
+      }
+      return true;
+    });
+  }, [replicaUniqueItems, replicaActiveCategory, replicaActiveSubcategory]);
+
+  const handleDragStart = (e: React.DragEvent, item: ProjectEntry) => {
+    const idxInMain = projects.findIndex(p => p.id === item.id);
+    setDraggedIdx(idxInMain);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetItem: ProjectEntry) => {
+    e.preventDefault();
+    if (draggedIdx === null) return;
+
+    const targetIdxInMain = projects.findIndex(p => p.id === targetItem.id);
+    if (targetIdxInMain === -1 || targetIdxInMain === draggedIdx) return;
+
+    const reordered = [...projects];
+    const [draggedItem] = reordered.splice(draggedIdx, 1);
+    reordered.splice(targetIdxInMain, 0, draggedItem);
+
+    setProjects(reordered);
+    setDraggedIdx(null);
+  };
+
   const showToast = (msg: string, ok: boolean) => {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 3500);
@@ -601,6 +688,176 @@ export default function AdminPage() {
                     </span>
                   )}
                 </div>
+              </div>
+            </section>
+
+            {/* ── Cinematic Layout Organizer (Drag & Drop) ─────────────────── */}
+            <section style={{ border: "1px dashed rgba(230,57,70,0.3)", padding: "2rem", background: "rgba(230,57,70,0.02)", position: "relative" }}>
+              <h2 style={sectionHeadingStyle}>Cinematic Layout Organizer (Drag & Drop)</h2>
+              <p style={{ fontFamily: "Space Mono,monospace", fontSize: 9, color: "rgba(240,240,240,0.35)", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: "-0.5rem", marginBottom: "2rem" }}>
+                Drag and move the tiles to rearrange projects. Dragging updates the save order automatically.
+              </p>
+
+              {/* Replica Categories Bar */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "1rem" }}>
+                {replicaDisplayCategories.map((cat) => {
+                  const isActive = replicaActiveCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => {
+                        setReplicaActiveCategory(cat);
+                        setReplicaActiveSubcategory("All");
+                      }}
+                      style={{
+                        padding: "0.35rem 0.85rem",
+                        fontSize: 8,
+                        fontFamily: "Space Mono,monospace",
+                        letterSpacing: "0.15em",
+                        textTransform: "uppercase",
+                        background: isActive ? "#e63946" : "transparent",
+                        color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
+                        border: `1px solid ${isActive ? "#e63946" : "rgba(255,255,255,0.15)"}`,
+                        cursor: "pointer",
+                        borderRadius: "100px",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Replica Subcategories Bar */}
+              {replicaActiveSubcategories.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "2rem" }}>
+                  <button
+                    type="button"
+                    onClick={() => setReplicaActiveSubcategory("All")}
+                    style={{
+                      padding: "0.3rem 0.65rem",
+                      fontSize: 7,
+                      fontFamily: "Space Mono,monospace",
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      background: replicaActiveSubcategory === "All" ? "rgba(255,255,255,0.1)" : "transparent",
+                      color: replicaActiveSubcategory === "All" ? "#fff" : "rgba(255,255,255,0.3)",
+                      border: "1px solid rgba(255,255,255,0.05)",
+                      cursor: "pointer",
+                      borderRadius: "100px",
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    All {replicaActiveCategory}
+                  </button>
+                  {replicaActiveSubcategories.map((sub) => {
+                    const isActiveSub = replicaActiveSubcategory.toLowerCase() === sub.name.toLowerCase();
+                    return (
+                      <button
+                        key={sub.name}
+                        type="button"
+                        onClick={() => setReplicaActiveSubcategory(sub.name)}
+                        style={{
+                          padding: "0.3rem 0.65rem",
+                          fontSize: 7,
+                          fontFamily: "Space Mono,monospace",
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase",
+                          background: isActiveSub ? "rgba(230,57,70,0.15)" : "transparent",
+                          color: isActiveSub ? "#fff" : "rgba(255,255,255,0.3)",
+                          border: `1px solid ${isActiveSub ? "#e63946" : "rgba(255,255,255,0.05)"}`,
+                          cursor: "pointer",
+                          borderRadius: "100px",
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        {sub.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Replica Grid Container */}
+              <div className="grid grid-cols-3 gap-4 w-full relative min-h-[150px]">
+                {replicaFilteredItems.map((item) => {
+                  const isVertical = item.layout === "Vertical";
+                  const driveMatch = item.thumbnailUrl?.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+                  const displayThumb = driveMatch
+                    ? `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w800`
+                    : item.thumbnailUrl;
+
+                  return (
+                    <div
+                      key={item.id}
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, item)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, item)}
+                      className={`relative overflow-hidden group select-none border border-white/5 bg-[#121212] transition-transform duration-250 ${
+                        isVertical ? "row-span-2 col-span-1 aspect-[3/3.65]" : "col-span-1 row-span-1 aspect-video"
+                      }`}
+                      style={{
+                        cursor: "grab",
+                        opacity: draggedIdx === projects.findIndex(p => p.id === item.id) ? 0.35 : 1,
+                        border: "1px solid rgba(255,255,255,0.05)"
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = "#e63946";
+                        e.currentTarget.style.transform = "scale(0.99)";
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      {/* Drag Hint Tag */}
+                      <div style={{ position: "absolute", top: 8, left: 8, zIndex: 10, background: "rgba(0,0,0,0.65)", border: "1px solid rgba(255,255,255,0.1)", padding: "1px 5px" }}>
+                        <span style={{ fontSize: 6, fontFamily: "Space Mono,monospace", color: "#e63946", letterSpacing: "0.15em" }}>DRAG</span>
+                      </div>
+
+                      {/* Video Thumbnail */}
+                      {displayThumb ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={displayThumb}
+                          alt={item.title}
+                          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                        />
+                      ) : (
+                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#181818" }}>
+                          <span style={{ fontSize: 8, fontFamily: "Space Mono,monospace", color: "rgba(255,255,255,0.2)" }}>NO THUMB</span>
+                        </div>
+                      )}
+
+                      {/* Corner SVG Brackets (Replica) */}
+                      <svg style={{ position: "absolute", top: 6, left: 6, pointerEvents: "none", zIndex: 5 }} width="10" height="10" viewBox="0 0 25 25" fill="none"><path d="M0.5 24.5V0.5H24.5" stroke="#e1e6e1" strokeWidth="2" /></svg>
+                      <svg style={{ position: "absolute", top: 6, right: 6, pointerEvents: "none", zIndex: 5 }} width="10" height="10" viewBox="0 0 25 25" fill="none"><path d="M0 0.5H24V24.5" stroke="#e1e6e1" strokeWidth="2" /></svg>
+                      <svg style={{ position: "absolute", bottom: 6, right: 6, pointerEvents: "none", zIndex: 5 }} width="10" height="10" viewBox="0 0 25 25" fill="none"><path d="M0 24H24V0" stroke="#e1e6e1" strokeWidth="2" /></svg>
+                      <svg style={{ position: "absolute", bottom: 6, left: 6, pointerEvents: "none", zIndex: 5 }} width="10" height="10" viewBox="0 0 25 25" fill="none"><path d="M0.5 0V24H24.5" stroke="#e1e6e1" strokeWidth="2" /></svg>
+
+                      {/* Overlay text detail */}
+                      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)", pointerEvents: "none" }} />
+                      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0.75rem", pointerEvents: "none" }}>
+                        <p style={{ fontSize: 6, fontFamily: "Space Mono,monospace", color: "#e63946", letterSpacing: "0.15em", textTransform: "uppercase", margin: 0 }}>
+                          {item.category} {item.subcategory ? `· ${item.subcategory}` : ""}
+                        </p>
+                        <h4 style={{ fontSize: 10, color: "#fff", letterSpacing: "0.02em", margin: "2px 0 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {item.title || "Untitled Project"}
+                        </h4>
+                      </div>
+                    </div>
+                  );
+                })}
+                {replicaFilteredItems.length === 0 && (
+                  <div style={{ gridColumn: "span 3", textAlign: "center", padding: "3rem", border: "1px dashed rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.01)" }}>
+                    <span style={{ fontSize: 9, fontFamily: "Space Mono,monospace", color: "rgba(255,255,255,0.3)", letterSpacing: "0.2em" }}>
+                      NO PROJECTS MATCHING FILTER
+                    </span>
+                  </div>
+                )}
               </div>
             </section>
 
