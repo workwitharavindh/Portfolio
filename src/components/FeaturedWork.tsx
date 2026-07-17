@@ -154,7 +154,7 @@ export default function FeaturedWork({
         </div>
 
         {/* 3-column unified grid for both mobile and desktop view */}
-        <div className="grid grid-cols-3 gap-3 md:gap-8 max-w-6xl mx-auto w-full relative min-h-[300px]">
+        <div className="grid grid-cols-3 gap-3 md:gap-8 max-w-6xl mx-auto w-full relative min-h-[300px] a-works-grid">
           <AnimatePresence mode="popLayout">
             {visibleItems.map((item) => {
               const isVertical = item.layout === "Vertical";

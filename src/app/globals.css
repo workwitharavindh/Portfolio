@@ -346,3 +346,14 @@ body:hover .a-mouse-main-wrapper {
 .a-text-link:hover::after {
   width: 100%;
 }
+
+/* ── Grid Auto-Rows Aspect Sizing ── */
+.a-works-grid {
+  grid-auto-rows: calc((100% - 2 * 12px) / 3 * 9 / 16);
+}
+
+@media (min-width: 768px) {
+  .a-works-grid {
+    grid-auto-rows: calc((100% - 2 * 32px) / 3 * 9 / 16);
+  }
+}
