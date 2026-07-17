@@ -94,8 +94,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid configuration data" }, { status: 400 });
     }
 
-    // 1. Always write to local config.json as backup
-    writeLocalConfig(newConfig);
+    let localWriteSuccess = false;
+    try {
+      writeLocalConfig(newConfig);
+      localWriteSuccess = true;
+    } catch (err) {
+      console.warn("Failed to write config to local filesystem (common on serverless hosts like Vercel):", err);
+    }
 
     // 2. If Sheets URL is configured, also push to Google Sheets
     if (SHEETS_URL) {
@@ -105,12 +110,27 @@ export async function POST(request: NextRequest) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newConfig),
         });
-        if (!sheetsRes.ok) {
-          console.warn("Google Sheets save warning:", await sheetsRes.text());
+        if (sheetsRes.ok) {
+          return NextResponse.json({ success: true, message: "Configuration updated (saved to Google Sheets)" });
+        } else {
+          const errMsg = await sheetsRes.text();
+          console.warn("Google Sheets save failed:", errMsg);
+          if (!localWriteSuccess) {
+            return NextResponse.json({ error: `Failed to save to Google Sheets: ${errMsg}` }, { status: 500 });
+          }
         }
-      } catch (err) {
-        console.warn("Failed to push to Sheets (local save succeeded):", err);
+      } catch (err: any) {
+        console.warn("Failed to push to Sheets:", err);
+        if (!localWriteSuccess) {
+          return NextResponse.json({ error: `Failed to connect to Google Sheets: ${err.message}` }, { status: 500 });
+        }
       }
+    }
+
+    if (!localWriteSuccess && !SHEETS_URL) {
+      return NextResponse.json({ 
+        error: "Read-only file system. Please configure the SHEETS_WEBAPP_URL environment variable to enable cloud database saving." 
+      }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: "Configuration updated" });
