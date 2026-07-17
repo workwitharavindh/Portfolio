@@ -81,6 +81,7 @@ export async function GET() {
           categories: sheetsData.categories ?? base.categories ?? [],
           subcategories: sheetsData.subcategories ?? base.subcategories ?? [],
           contactDetails: { ...(base.contactDetails ?? {}), ...(sheetsData.contactDetails ?? {}) },
+          aboutImageUrl: resolveDriveThumbnail(sheetsData.aboutImageUrl ?? base.aboutImageUrl ?? ""),
           portfolioItems: cleanPortfolioItems(
             sheetsData.portfolioItems?.length
               ? sheetsData.portfolioItems
@@ -97,7 +98,11 @@ export async function GET() {
   // 2. Fallback: local config.json
   const local = readLocalConfig();
   if (!local) return NextResponse.json({ error: "Config not found" }, { status: 404 });
-  const cleaned = { ...local, portfolioItems: cleanPortfolioItems(local.portfolioItems ?? []) };
+  const cleaned = {
+    ...local,
+    aboutImageUrl: resolveDriveThumbnail(local.aboutImageUrl ?? ""),
+    portfolioItems: cleanPortfolioItems(local.portfolioItems ?? [])
+  };
   return NextResponse.json(cleaned);
 }
 
