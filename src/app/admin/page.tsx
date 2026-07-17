@@ -117,6 +117,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
 // ─── Main Admin Panel ─────────────────────────────────────────────────────────
 interface ProjectEntry {
+  id?: string;
   title: string;
   videoUrl: string;
   thumbnailUrl: string;
@@ -173,6 +174,7 @@ export default function AdminPage() {
         const items = data.portfolioItems ?? [];
         const mapped: ProjectEntry[] = items.length > 0
           ? items.map((item: any, i: number) => ({
+              id: item?.id ?? `item-${Date.now()}-${i}`,
               title: item?.title ?? `Project ${i + 1}`,
               videoUrl: item?.videoUrl ?? item?.rawUrl ?? "",
               thumbnailUrl: item?.thumbnailUrl ?? "",
@@ -180,6 +182,7 @@ export default function AdminPage() {
               layout: item?.layout ?? "Horizontal",
             }))
           : Array.from({ length: 5 }, (_, i) => ({
+              id: `item-${Date.now()}-${i}`,
               title: `Project ${i + 1}`,
               videoUrl: "",
               thumbnailUrl: "",
@@ -199,17 +202,22 @@ export default function AdminPage() {
       const existingRes = await fetch("/api/config");
       const existing = await existingRes.json();
 
-      const portfolioItems = projects.map((p, i) => ({
-        ...(existing.portfolioItems?.[i] ?? {}),
-        id: existing.portfolioItems?.[i]?.id ?? `item-${i + 1}`,
-        title: p.title || `Project ${i + 1}`,
-        category: p.category || (categories[0] || "Featured Work"),
-        videoUrl: p.videoUrl || "",
-        thumbnailUrl: p.thumbnailUrl || "",
-        layout: p.layout || "Horizontal",
-        isFeatured: existing.portfolioItems?.[i]?.isFeatured ?? true,
-        description: existing.portfolioItems?.[i]?.description ?? "",
-      }));
+      const portfolioItems = projects.map((p, i) => {
+        const existingItem = existing.portfolioItems?.find((item: any) => item.id === p.id) 
+          || existing.portfolioItems?.[i];
+        
+        return {
+          ...existingItem,
+          id: p.id || existingItem?.id || `item-${Date.now()}-${i}`,
+          title: p.title || `Project ${i + 1}`,
+          category: p.category || (categories[0] || "Featured Work"),
+          videoUrl: p.videoUrl || "",
+          thumbnailUrl: p.thumbnailUrl || "",
+          layout: p.layout || "Horizontal",
+          isFeatured: existingItem?.isFeatured ?? false,
+          description: existingItem?.description ?? "",
+        };
+      });
 
       const payload = {
         ...existing,
@@ -257,6 +265,7 @@ export default function AdminPage() {
 
   const handleAddProject = () => {
     setProjects(prev => [...prev, {
+      id: `item-${Date.now()}`,
       title: "",
       videoUrl: "",
       thumbnailUrl: "",

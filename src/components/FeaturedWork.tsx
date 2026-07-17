@@ -35,26 +35,59 @@ export default function FeaturedWork({
     setLimitRows(3);
   };
 
-  const fallbackCategories = [
+  const fallbackCategories = React.useMemo(() => [
     "Featured Work",
     "Commercial Projects",
     "Viral Content",
     "YouTube Content",
     "Reels",
     "Color Grading"
-  ];
+  ], []);
 
-  const displayCategories = [
-    "All",
-    ...(categories.length > 0 ? categories : fallbackCategories)
-  ];
+  const displayCategories = React.useMemo(() => {
+    const catsSet = new Set<string>();
+    const baseCats = categories.length > 0 ? categories : fallbackCategories;
+    
+    // Add base categories to set
+    baseCats.forEach(cat => {
+      if (cat && cat.trim()) catsSet.add(cat.trim());
+    });
+    
+    // Add categories from items to make sure all items are filterable
+    items.forEach(item => {
+      if (item.category && item.category.trim()) {
+        const trimmed = item.category.trim();
+        const existing = Array.from(catsSet).find(c => c.toLowerCase() === trimmed.toLowerCase());
+        if (!existing) {
+          catsSet.add(trimmed);
+        }
+      }
+    });
+    
+    return ["All", ...Array.from(catsSet)];
+  }, [categories, fallbackCategories, items]);
 
-  const filteredItems = activeCategory === "All"
-    ? items
-    : items.filter(item => item.category === activeCategory);
+  // Prevent item duplication by tracking unique IDs
+  const uniqueItems = React.useMemo(() => {
+    const seen = new Set<string>();
+    return items.filter(item => {
+      if (!item.id) return false;
+      const itemIdStr = String(item.id).trim();
+      if (seen.has(itemIdStr)) return false;
+      seen.add(itemIdStr);
+      return true;
+    });
+  }, [items]);
+
+  const filteredItems = React.useMemo(() => {
+    return uniqueItems.filter(item => {
+      if (activeCategory === "All") return true;
+      return item.category?.trim().toLowerCase() === activeCategory.trim().toLowerCase();
+    });
+  }, [uniqueItems, activeCategory]);
 
   // Visible items calculation based on limitRows in 3-column layout
-  const getVisibleItemsForRows = (itemsList: PortfolioItem[], maxRows: number) => {
+  const getVisibleItemsForRows = React.useCallback((itemsList: PortfolioItem[], maxRows: number) => {
     const colHeights = [0, 0, 0];
     const visible: PortfolioItem[] = [];
     let hasMore = false;
@@ -79,11 +112,12 @@ export default function FeaturedWork({
         visible.push(item);
       } else {
         hasMore = true;
+        break; // Break the loop so subsequent items are not added out of order/skipped
       }
     }
 
     return { visible, hasMore };
-  };
+  }, []);
 
   const { visible: visibleItems, hasMore } = getVisibleItemsForRows(filteredItems, limitRows);
 
@@ -155,7 +189,7 @@ export default function FeaturedWork({
 
         {/* 3-column unified grid for both mobile and desktop view */}
         <div className="grid grid-cols-3 gap-3 md:gap-8 max-w-6xl mx-auto w-full relative min-h-[300px]">
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="wait">
             {visibleItems.map((item) => {
               const isVertical = item.layout === "Vertical";
 
