@@ -154,7 +154,7 @@ export default function FeaturedWork({
         </div>
 
         {/* 3-column unified grid for both mobile and desktop view */}
-        <div className="grid grid-cols-3 gap-3 md:gap-8 max-w-6xl mx-auto w-full relative min-h-[300px] a-works-grid">
+        <div className="grid grid-cols-3 gap-3 md:gap-8 max-w-6xl mx-auto w-full relative min-h-[300px]">
           <AnimatePresence mode="popLayout">
             {visibleItems.map((item) => {
               const isVertical = item.layout === "Vertical";
@@ -165,7 +165,7 @@ export default function FeaturedWork({
                   layout
                   className={`w-full flex flex-col group ${
                     isVertical 
-                      ? "row-span-2 col-span-1 h-full" 
+                      ? "row-span-2 col-span-1" 
                       : "col-span-1 row-span-1"
                   }`}
                   initial={{ opacity: 0, y: 30 }}
@@ -176,7 +176,7 @@ export default function FeaturedWork({
                   {/* Visual Frame Block */}
                   <div
                     className={`a-product-card w-full relative overflow-hidden bg-[#181818] cursor-pointer ${
-                      isVertical ? "flex-grow h-full min-h-[140px] md:min-h-[320px]" : "aspect-video"
+                      isVertical ? "w-full aspect-[3/3.7] md:aspect-[3/3.65]" : "aspect-video w-full"
                     }`}
                     onMouseEnter={() => handleMouseEnter(item.id)}
                     onMouseLeave={() => handleMouseLeave(item.id)}
