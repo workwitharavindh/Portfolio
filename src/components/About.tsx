@@ -120,7 +120,7 @@ export default function About({ aboutText, imageUrl }: AboutProps) {
             viewport={{ once: true, margin: "-50px" }}
             className="flex flex-wrap gap-2"
           >
-            {["Final Cut Pro", "Premiere Pro", "Davinci Resolve", "After Effects", "Photoshop", "Lightroom"].map((skill) => (
+            {["Final Cut Pro", "Davinci Resolve", "Premiere Pro", "After Effects", "Photoshop", "Lightroom"].map((skill) => (
               <motion.span
                 key={skill}
                 variants={itemVariants}
@@ -213,7 +213,7 @@ export default function About({ aboutText, imageUrl }: AboutProps) {
           viewport={{ once: true }}
           className="grid grid-cols-2 gap-2.5 w-full px-6"
         >
-          {["Final Cut Pro", "Premiere Pro", "Davinci Resolve", "After Effects", "Photoshop", "Lightroom"].map((skill) => (
+          {["Final Cut Pro", "Davinci Resolve", "Premiere Pro", "After Effects", "Photoshop", "Lightroom"].map((skill) => (
             <motion.span
               key={skill}
               variants={itemVariants}
