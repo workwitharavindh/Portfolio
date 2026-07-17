@@ -284,7 +284,7 @@ export default function Home() {
                         autoPlay={true}
                         style={playItem.layout === "Vertical"
                           ? { height: "100%", width: "auto", aspectRatio: "9/16", maxHeight: "75vh", maxWidth: "100%" }
-                          : { height: "100%", width: "100%", maxWidth: "960px", aspectRatio: "16/9" }
+                          : { height: "auto", width: "100%", maxWidth: "960px", aspectRatio: "16/9" }
                         }
                       />
                     );
