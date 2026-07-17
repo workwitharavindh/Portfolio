@@ -33,6 +33,21 @@ function resolveYouTubeThumbnail(videoUrl: string): string {
   return "";
 }
 
+function resolveDriveThumbnail(url: string): string {
+  if (!url) return url;
+  // Convert any drive.google.com/file/d/ID/... URL to a direct thumbnail link
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch) {
+    return `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w800`;
+  }
+  // Also handle uc?id= format
+  const ucMatch = url.match(/drive\.google\.com\/uc\?.*?id=([a-zA-Z0-9_-]+)/);
+  if (ucMatch) {
+    return `https://drive.google.com/thumbnail?id=${ucMatch[1]}&sz=w800`;
+  }
+  return url;
+}
+
 function cleanPortfolioItems(items: unknown[]): unknown[] {
   if (!Array.isArray(items)) return items;
   return items.map((item: unknown) => {
@@ -43,7 +58,7 @@ function cleanPortfolioItems(items: unknown[]): unknown[] {
     const isUnsplash = thumb.includes("unsplash.com");
     const resolvedThumb = isUnsplash || thumb === ""
       ? resolveYouTubeThumbnail(videoUrl)
-      : thumb;
+      : resolveDriveThumbnail(thumb);  // Convert Drive share links to direct thumbnail URLs
     return { ...i, thumbnailUrl: resolvedThumb };
   });
 }
