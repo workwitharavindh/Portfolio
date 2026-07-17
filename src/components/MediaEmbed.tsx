@@ -61,8 +61,8 @@ export default function MediaEmbed({
 
   // ── YouTube / Google Drive iframe ─────────────────────────
   if (platform === "youtube" || platform === "drive") {
-    // For YouTube, if not playing yet show thumbnail + play button
-    if (platform === "youtube" && !playing && thumbnailUrl) {
+    // For YouTube, if not playing yet and not autoplaying, show thumbnail + play button
+    if (platform === "youtube" && !playing && !autoPlay && thumbnailUrl) {
       return (
         <div style={{ ...wrapStyle, cursor: "pointer" }} onClick={() => setPlaying(true)}>
           {/* Thumbnail */}
@@ -85,16 +85,6 @@ export default function MediaEmbed({
               <path d="M5 3l14 9-14 9V3z" />
             </svg>
           </div>
-          {/* Platform badge */}
-          <div style={{
-            position: "absolute", top: 12, left: 12,
-            background: getPlatformColor(platform), padding: "3px 8px",
-            display: "flex", alignItems: "center", gap: 4,
-          }}>
-            <span style={{ fontSize: 9, fontFamily: "Space Mono,monospace", letterSpacing: "0.2em", color: "#fff", textTransform: "uppercase" }}>
-              {getPlatformLabel(platform)}
-            </span>
-          </div>
         </div>
       );
     }
@@ -112,15 +102,6 @@ export default function MediaEmbed({
           allowFullScreen
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
         />
-        <div style={{
-          position: "absolute", top: 10, left: 10,
-          background: getPlatformColor(platform), padding: "3px 8px",
-          pointerEvents: "none",
-        }}>
-          <span style={{ fontSize: 9, fontFamily: "Space Mono,monospace", letterSpacing: "0.2em", color: "#fff", textTransform: "uppercase" }}>
-            {getPlatformLabel(platform)}
-          </span>
-        </div>
       </div>
     );
   }
@@ -146,15 +127,6 @@ export default function MediaEmbed({
           scrolling="no"
           style={{ position: "absolute", top: -2, left: -2, width: "calc(100% + 4px)", height: "calc(100% + 4px)", border: "none" }}
         />
-        <div style={{
-          position: "absolute", top: 10, left: 10,
-          background: getPlatformColor("instagram"), padding: "3px 8px",
-          pointerEvents: "none", borderRadius: "4px"
-        }}>
-          <span style={{ fontSize: 9, fontFamily: "Space Mono,monospace", letterSpacing: "0.2em", color: "#fff", textTransform: "uppercase" }}>
-            Instagram Reel
-          </span>
-        </div>
       </div>
     );
   }
