@@ -1,0 +1,142 @@
+{
+  "siteName": "ARAVINDHAN R",
+  "title": "ARAVINDHAN R | Cinematic Video Editor Portfolio",
+  "tagline": "CRAFTING STORIES THAT CAPTIVATE MILLIONS",
+  "subtagline": "Premium Video Editing For Brands, Creators, Businesses And Viral Content.",
+  "categories": [
+    "Commercial Projects",
+    "YouTube Content",
+    "Reels",
+    "Wedding Films"
+  ],
+  "driveFolderUrl": "",
+  "googleApiKey": "",
+  "theme": {
+    "primary": "#f73a0b",
+    "secondary": "#090809",
+    "accent": "#f73a0b",
+    "textColor": "#e1e6e1"
+  },
+  "sections": {
+    "hero": true,
+    "showreel": true,
+    "portfolio": true,
+    "services": true,
+    "about": true,
+    "testimonials": true,
+    "contact": true
+  },
+  "aboutImageUrl": "/assets/images/profile.png",
+  "aboutText": "BEHIND EVERY VIRAL VIDEO IS A STORY WORTH TELLING. With years of experience working with top-tier creators and luxury brands, I bring cinematic flare, precision pacing, and high-retention editing structures to every project. I construct stories, orchestrate tension, and engineer engagement that converts passive viewers into active followers.",
+  "aboutTimeline": [
+    {
+      "year": "2021",
+      "title": "Started Cinematic Journey",
+      "description": "Perfected pacing and storytelling for digital creators."
+    },
+    {
+      "year": "2022",
+      "title": "Viral Breakthrough",
+      "description": "Edited social videos generating over 50M+ views."
+    },
+    {
+      "year": "2023",
+      "title": "Hollywood Color & VFX",
+      "description": "Mastered professional DaVinci Resolve grading."
+    },
+    {
+      "year": "2024",
+      "title": "Lead Editor for Top 1% Brands",
+      "description": "Crafting premium content for world-class studios."
+    }
+  ],
+  "services": [
+    {
+      "title": "YouTube Editing",
+      "description": "High-retention, engaging edits with premium pacing, color, and sound design."
+    },
+    {
+      "title": "Reels & Shorts",
+      "description": "Fast-paced, hook-driven vertical edits designed to trigger algorithm virality."
+    },
+    {
+      "title": "Commercial Editing",
+      "description": "High-production-value brand ads and cinematic product showcases."
+    },
+    {
+      "title": "Color Grading",
+      "description": "Hollywood-grade cinematic color processing and exposure calibration."
+    }
+  ],
+  "testimonials": [
+    {
+      "name": "Marcus Aurelius",
+      "role": "Creative Director, Empire Media",
+      "text": "Aravindhan's attention to pacing and viewer retention is world-class. An absolute game-changer for our productions."
+    },
+    {
+      "name": "Elena Rostova",
+      "role": "Founder, Lux Brand Agency",
+      "text": "He turned a basic commercial shoot into a Hollywood-grade cinematic trailer. Our brand engagement has tripled."
+    }
+  ],
+  "contactDetails": {
+    "email": "aravindhanaravi105@gmail.com",
+    "whatsapp": "+919994427630",
+    "instagram": "https://www.instagram.com/__aravindhan?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==",
+    "linkedin": "",
+    "youtube": ""
+  },
+  "portfolioItems": [
+    {
+      "id": "item-2",
+      "title": "Wedding Cinema Test",
+      "category": "Wedding Films",
+      "videoUrl": "https://youtu.be/iAtoZar5W58?si=rfukHd9SYq5slNl0",
+      "thumbnailUrl": "https://img.youtube.com/vi/iAtoZar5W58/maxresdefault.jpg",
+      "isFeatured": false,
+      "description": "High-end cinematic commercial.",
+      "layout": "Vertical"
+    },
+    {
+      "id": "item-3",
+      "title": "Street Style Virality",
+      "category": "Viral Content",
+      "videoUrl": "https://youtu.be/Aze7zTyIRtk?si=NT8PG9a7vjOn7F1w",
+      "thumbnailUrl": "https://img.youtube.com/vi/Aze7zTyIRtk/maxresdefault.jpg",
+      "isFeatured": false,
+      "description": "Urban skateboard edit.",
+      "layout": "Horizontal"
+    },
+    {
+      "id": "item-4",
+      "title": "Epic Mountain Showreel",
+      "category": "Featured Work",
+      "videoUrl": "https://youtu.be/YQ6ShcAU_dQ?si=Xcv4sn8QwqgqfadQ",
+      "thumbnailUrl": "https://img.youtube.com/vi/YQ6ShcAU_dQ/maxresdefault.jpg",
+      "isFeatured": false,
+      "description": "Breathtaking landscape editing.",
+      "layout": "Horizontal"
+    },
+    {
+      "id": "item-5",
+      "title": "Fast & Furious Car Sequence",
+      "category": "Reels",
+      "videoUrl": "https://youtu.be/b68HETiNO98?si=JH3mYEmDz7SV26L4",
+      "thumbnailUrl": "https://img.youtube.com/vi/b68HETiNO98/maxresdefault.jpg",
+      "isFeatured": false,
+      "description": "Adrenaline-fueled chase sequence.",
+      "layout": "Horizontal"
+    },
+    {
+      "id": "item-6",
+      "title": "Cinematic Drone Journey",
+      "category": "YouTube Content",
+      "videoUrl": "https://youtu.be/4bZ-MAOLbGc?si=zB27r8xM4nY3Oal8",
+      "thumbnailUrl": "https://img.youtube.com/vi/4bZ-MAOLbGc/maxresdefault.jpg",
+      "isFeatured": false,
+      "description": "Drone cinematic tracking.",
+      "layout": "Horizontal"
+    }
+  ]
+}
