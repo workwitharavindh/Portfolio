@@ -264,17 +264,13 @@ export default function Home() {
                   const isDirect = parsedMedia.platform === "direct";
                   const isDrive = parsedMedia.platform === "drive";
 
-                  if (isDirect || isDrive) {
-                    const videoSrc = isDrive
-                      ? `/api/video?id=${parsedMedia.videoId}`
-                      : playItem.videoUrl;
-
+                  if (isDirect) {
                     return (
                       <video
                         ref={playerVideoRef}
                         autoPlay
                         playsInline
-                        src={videoSrc}
+                        src={playItem.videoUrl}
                         onTimeUpdate={handleTimeUpdate}
                         onLoadedMetadata={handleLoadedMetadata}
                         onClick={togglePlay}
@@ -284,6 +280,41 @@ export default function Home() {
                           : { height: "auto", width: "100%", maxWidth: "960px", aspectRatio: "16/9" }
                         }
                       />
+                    );
+                  } else if (isDrive) {
+                    // Native Drive preview iframe — streams instantly from Google CDN
+                    // CSS masks hide Drive branding (header, footer bar, pop-out button)
+                    const driveStyle = playItem.layout === "Vertical"
+                      ? { height: "75vh", width: "auto", aspectRatio: "9/16", maxWidth: "100%" }
+                      : { height: "auto", width: "100%", maxWidth: "960px", aspectRatio: "16/9" };
+                    return (
+                      <div style={{ position: "relative", ...driveStyle, overflow: "hidden", borderRadius: 8 }}>
+                        {/* Expanded iframe to allow masking */}
+                        <iframe
+                          src={parsedMedia.embedUrl}
+                          title={playItem.title}
+                          allow="autoplay; encrypted-media; picture-in-picture"
+                          allowFullScreen
+                          style={{
+                            position: "absolute",
+                            top: -50,
+                            left: 0,
+                            width: "100%",
+                            height: "calc(100% + 100px)",
+                            border: "none",
+                          }}
+                        />
+                        {/* Top mask: hides Drive filename header bar */}
+                        <div style={{
+                          position: "absolute", top: 0, left: 0, right: 0, height: 54,
+                          background: "#090809", zIndex: 10, pointerEvents: "none"
+                        }} />
+                        {/* Bottom mask: hides Drive bottom bar with CC, speed, settings */}
+                        <div style={{
+                          position: "absolute", bottom: 0, left: 0, right: 0, height: 54,
+                          background: "#090809", zIndex: 10, pointerEvents: "none"
+                        }} />
+                      </div>
                     );
                   } else {
                     return (
@@ -317,8 +348,8 @@ export default function Home() {
                   </h3>
                 </div>
 
-                {/* Circle Controls (Play & Mute) - For Direct MP4 & Google Drive */}
-                {playItem && (parseMediaUrl(playItem.youtubeUrl || playItem.videoUrl).platform === "direct" || parseMediaUrl(playItem.youtubeUrl || playItem.videoUrl).platform === "drive") && (
+                {/* Circle Controls (Play & Mute) - Only for direct MP4 */}
+                {playItem && parseMediaUrl(playItem.youtubeUrl || playItem.videoUrl).platform === "direct" && (
                   <div className="flex gap-4">
                     {/* Play/Pause Button */}
                     <button
@@ -358,8 +389,8 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Progress Seek Bar - For Direct MP4 & Google Drive */}
-              {playItem && (parseMediaUrl(playItem.youtubeUrl || playItem.videoUrl).platform === "direct" || parseMediaUrl(playItem.youtubeUrl || playItem.videoUrl).platform === "drive") && (
+              {/* Progress Seek Bar - Only for direct MP4 */}
+              {playItem && parseMediaUrl(playItem.youtubeUrl || playItem.videoUrl).platform === "direct" && (
                 <>
                   <div
                     ref={progressBarRef}

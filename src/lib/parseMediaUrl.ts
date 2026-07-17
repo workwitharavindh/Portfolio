@@ -36,7 +36,7 @@ export function parseMediaUrl(url: string): ParsedMedia {
     return {
       platform: "drive",
       videoId: id,
-      embedUrl: `https://drive.google.com/file/d/${id}/preview`,
+      embedUrl: `https://drive.google.com/file/d/${id}/preview?autoplay=1`,
       thumbnailUrl: `https://drive.google.com/thumbnail?id=${id}&sz=w800`,
       rawUrl: raw,
     };
