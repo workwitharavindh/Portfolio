@@ -102,6 +102,18 @@ export default function MediaEmbed({
           allowFullScreen
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
         />
+        {platform === "drive" && (
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 48,
+            background: "#090809",
+            zIndex: 10,
+            pointerEvents: "none"
+          }} />
+        )}
       </div>
     );
   }
