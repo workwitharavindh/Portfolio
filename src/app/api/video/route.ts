@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 
 export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
+      cache: "no-store",
     });
 
     let targetUrl = driveUrl;
@@ -42,6 +44,7 @@ export async function GET(request: NextRequest) {
 
     const streamRes = await fetch(targetUrl, {
       headers: clientHeaders,
+      cache: "no-store",
     });
 
     // 3. Forward stream headers to client
