@@ -145,6 +145,22 @@ export default function AdminPage() {
   const [subcategories, setSubcategories] = useState<{ category: string; name: string }[]>([]);
   const [projects, setProjects] = useState<ProjectEntry[]>([]);
 
+  // Project list filter states
+  const [filterText, setFilterText] = useState("");
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [filterSubcategory, setFilterSubcategory] = useState("All");
+
+  const filteredProjects = React.useMemo(() => {
+    return projects
+      .map((proj, index) => ({ proj, index }))
+      .filter(({ proj }) => {
+        if (filterCategory !== "All" && proj.category?.toLowerCase() !== filterCategory.toLowerCase()) return false;
+        if (filterSubcategory !== "All" && proj.subcategory?.toLowerCase() !== filterSubcategory.toLowerCase()) return false;
+        if (filterText && !proj.title?.toLowerCase().includes(filterText.toLowerCase())) return false;
+        return true;
+      });
+  }, [projects, filterCategory, filterSubcategory, filterText]);
+
   // Layout Organizer states and handlers
   const [replicaActiveCategory, setReplicaActiveCategory] = useState("All");
   const [replicaActiveSubcategory, setReplicaActiveSubcategory] = useState("All");
@@ -864,18 +880,80 @@ export default function AdminPage() {
             {/* ── Project Video URLs ────────────────────────────────────────── */}
             <section>
               <h2 style={sectionHeadingStyle}>Selected Project Videos</h2>
+              
+              {/* Filter & Search Bar */}
+              <div style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "1rem",
+                padding: "1.25rem",
+                background: "#111",
+                border: "1px solid rgba(255,255,255,0.06)",
+                marginBottom: "1.5rem"
+              }}>
+                <div style={{ ...fieldStyle, flex: "2 1 200px" }}>
+                  <label style={labelStyle}>Search Title</label>
+                  <input
+                    type="text"
+                    value={filterText}
+                    onChange={e => setFilterText(e.target.value)}
+                    placeholder="Search by project title..."
+                    style={{ ...inputStyle, padding: "0.6rem 0.85rem" }}
+                    onFocus={e => (e.target.style.borderColor = "#e63946")}
+                    onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                  />
+                </div>
+                <div style={{ ...fieldStyle, flex: "1 1 150px" }}>
+                  <label style={labelStyle}>Filter Category</label>
+                  <select
+                    value={filterCategory}
+                    onChange={e => {
+                      setFilterCategory(e.target.value);
+                      setFilterSubcategory("All");
+                    }}
+                    style={{ ...inputStyle, padding: "0.6rem 0.85rem", background: "#0a0a0a", cursor: "pointer" }}
+                    onFocus={e => (e.target.style.borderColor = "#e63946")}
+                    onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                  >
+                    <option value="All">All Categories</option>
+                    {categories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                {subcategories.filter(s => filterCategory === "All" || s.category?.toLowerCase() === filterCategory.toLowerCase()).length > 0 && (
+                  <div style={{ ...fieldStyle, flex: "1 1 150px" }}>
+                    <label style={labelStyle}>Filter Subcategory</label>
+                    <select
+                      value={filterSubcategory}
+                      onChange={e => setFilterSubcategory(e.target.value)}
+                      style={{ ...inputStyle, padding: "0.6rem 0.85rem", background: "#0a0a0a", cursor: "pointer" }}
+                      onFocus={e => (e.target.style.borderColor = "#e63946")}
+                      onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                    >
+                      <option value="All">All Subcategories</option>
+                      {subcategories
+                        .filter(s => filterCategory === "All" || s.category?.toLowerCase() === filterCategory.toLowerCase())
+                        .map(sub => (
+                          <option key={sub.name} value={sub.name}>{sub.name}</option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
               <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-                {projects.map((proj, idx) => (
-                  <div key={idx} style={{ padding: "1.5rem", border: "1px solid rgba(255,255,255,0.06)", background: "#111", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {filteredProjects.map(({ proj, index }) => (
+                  <div key={proj.id || index} style={{ padding: "1.5rem", border: "1px solid rgba(255,255,255,0.06)", background: "#111", display: "flex", flexDirection: "column", gap: "1rem" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.25rem" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                         <span style={{ fontFamily: "Space Mono,monospace", fontSize: 11, color: "#e63946", letterSpacing: "0.2em" }}>
-                          #{String(idx + 1).padStart(2, "0")}
+                          #{String(index + 1).padStart(2, "0")}
                         </span>
                       </div>
                       <button
                         type="button"
-                        onClick={() => handleDeleteProject(idx)}
+                        onClick={() => handleDeleteProject(index)}
                         style={{
                           background: "none",
                           border: "none",
@@ -892,29 +970,72 @@ export default function AdminPage() {
                         [Delete Project]
                       </button>
                     </div>
+
+                    <div style={fieldStyle}>
+                      <label style={labelStyle}>Project Title</label>
+                      <input type="text" value={proj.title} onChange={e => updateProject(index, "title", e.target.value)}
+                        placeholder="e.g. Cinematic Wedding Trailer"
+                        style={inputStyle}
+                        onFocus={e => (e.target.style.borderColor = "#e63946")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
+                    </div>
+
                     <div style={fieldStyle}>
                       <label style={labelStyle}>Video URL (YouTube / Drive / Direct MP4)</label>
-                      <input type="url" value={proj.videoUrl} onChange={e => updateProject(idx, "videoUrl", e.target.value)}
+                      <input type="url" value={proj.videoUrl} onChange={e => updateProject(index, "videoUrl", e.target.value)}
                         placeholder="https://youtu.be/... or drive.google.com/..."
                         style={inputStyle}
                         onFocus={e => (e.target.style.borderColor = "#e63946")}
                         onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
                     </div>
+
                     <div style={fieldStyle}>
                       <label style={labelStyle}>Thumbnail Image URL <span style={{ color: "rgba(240,240,240,0.2)" }}>(optional)</span></label>
-                      <input type="url" value={proj.thumbnailUrl} onChange={e => updateProject(idx, "thumbnailUrl", e.target.value)}
-                        placeholder="https://... (auto-detected for YouTube)"
-                        style={inputStyle}
-                        onFocus={e => (e.target.style.borderColor = "#e63946")}
-                        onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
+                      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                        <input type="url" value={proj.thumbnailUrl} onChange={e => updateProject(index, "thumbnailUrl", e.target.value)}
+                          placeholder="https://... (auto-detected for YouTube)"
+                          style={{ ...inputStyle, flex: 1 }}
+                          onFocus={e => (e.target.style.borderColor = "#e63946")}
+                          onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
+                        {(() => {
+                          const ytRegex = /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+                          const ytMatch = proj.videoUrl?.match(ytRegex);
+                          
+                          // First check thumbnailUrl share link
+                          const driveMatch = proj.thumbnailUrl?.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+                          const driveUcMatch = proj.thumbnailUrl?.match(/drive\.google\.com\/uc\?.*?id=([a-zA-Z0-9_-]+)/);
+                          
+                          let resolvedThumb = "";
+                          if (driveMatch) {
+                            resolvedThumb = `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w200`;
+                          } else if (driveUcMatch) {
+                            resolvedThumb = `https://drive.google.com/thumbnail?id=${driveUcMatch[1]}&sz=w200`;
+                          } else if (proj.thumbnailUrl) {
+                            resolvedThumb = proj.thumbnailUrl;
+                          } else if (ytMatch) {
+                            resolvedThumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+                          }
+
+                          if (resolvedThumb) {
+                            return (
+                              <div style={{ flexShrink: 0, position: "relative", width: 60, height: 35, background: "#111", borderRadius: 4, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={resolvedThumb} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
                     </div>
+
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
                       <div style={fieldStyle}>
                         <label style={labelStyle}>Category</label>
                         <select value={proj.category} onChange={e => {
                           const newCat = e.target.value;
-                          updateProject(idx, "category", newCat);
-                          updateProject(idx, "subcategory", "");
+                          updateProject(index, "category", newCat);
+                          updateProject(index, "subcategory", "");
                         }}
                           style={{ ...inputStyle, background: "#0a0a0a", cursor: "pointer" }}
                           onFocus={e => (e.target.style.borderColor = "#e63946")}
@@ -926,7 +1047,7 @@ export default function AdminPage() {
                       </div>
                       <div style={fieldStyle}>
                         <label style={labelStyle}>Subcategory</label>
-                        <select value={proj.subcategory ?? ""} onChange={e => updateProject(idx, "subcategory", e.target.value)}
+                        <select value={proj.subcategory ?? ""} onChange={e => updateProject(index, "subcategory", e.target.value)}
                           style={{ ...inputStyle, background: "#0a0a0a", cursor: "pointer" }}
                           onFocus={e => (e.target.style.borderColor = "#e63946")}
                           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}>
@@ -940,7 +1061,7 @@ export default function AdminPage() {
                       </div>
                       <div style={fieldStyle}>
                         <label style={labelStyle}>Layout Type</label>
-                        <select value={proj.layout ?? "Horizontal"} onChange={e => updateProject(idx, "layout", e.target.value as any)}
+                        <select value={proj.layout ?? "Horizontal"} onChange={e => updateProject(index, "layout", e.target.value as any)}
                           style={{ ...inputStyle, background: "#0a0a0a", cursor: "pointer" }}
                           onFocus={e => (e.target.style.borderColor = "#e63946")}
                           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}>
