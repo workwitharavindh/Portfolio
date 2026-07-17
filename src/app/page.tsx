@@ -282,39 +282,20 @@ export default function Home() {
                       />
                     );
                   } else if (isDrive) {
-                    // Native Drive preview iframe — streams instantly from Google CDN
-                    // CSS masks hide Drive branding (header, footer bar, pop-out button)
-                    const driveStyle = playItem.layout === "Vertical"
-                      ? { height: "75vh", width: "auto", aspectRatio: "9/16", maxWidth: "100%" }
-                      : { height: "auto", width: "100%", maxWidth: "960px", aspectRatio: "16/9" };
                     return (
-                      <div style={{ position: "relative", ...driveStyle, overflow: "hidden", borderRadius: 8 }}>
-                        {/* Expanded iframe to allow masking */}
-                        <iframe
-                          src={parsedMedia.embedUrl}
-                          title={playItem.title}
-                          allow="autoplay; encrypted-media; picture-in-picture"
-                          allowFullScreen
-                          style={{
-                            position: "absolute",
-                            top: -50,
-                            left: 0,
-                            width: "100%",
-                            height: "calc(100% + 100px)",
-                            border: "none",
-                          }}
-                        />
-                        {/* Top mask: hides Drive filename header bar */}
-                        <div style={{
-                          position: "absolute", top: 0, left: 0, right: 0, height: 54,
-                          background: "#090809", zIndex: 10, pointerEvents: "none"
-                        }} />
-                        {/* Bottom mask: hides Drive bottom bar with CC, speed, settings */}
-                        <div style={{
-                          position: "absolute", bottom: 0, left: 0, right: 0, height: 54,
-                          background: "#090809", zIndex: 10, pointerEvents: "none"
-                        }} />
-                      </div>
+                      <iframe
+                        src={parsedMedia.embedUrl}
+                        title={playItem.title}
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                        allowFullScreen
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          border: "none",
+                          maxWidth: "960px",
+                          aspectRatio: "16/9",
+                        }}
+                      />
                     );
                   } else {
                     return (
