@@ -797,7 +797,7 @@ export default function AdminPage() {
               )}
 
               {/* Replica Grid Container */}
-              <div className="grid grid-cols-3 gap-4 w-full relative min-h-[150px]">
+              <div className="grid grid-cols-4 gap-4 w-full relative min-h-[150px]" style={{ gridAutoRows: 'minmax(0, 1fr)' }}>
                 {replicaFilteredItems.map((item) => {
                   const isVertical = item.layout === "Vertical";
                   const driveMatch = item.thumbnailUrl?.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
@@ -813,7 +813,7 @@ export default function AdminPage() {
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, item)}
                       className={`relative overflow-hidden group select-none border border-white/5 bg-[#121212] transition-transform duration-250 ${
-                        isVertical ? "row-span-2 col-span-1 aspect-[3/3.65]" : "col-span-1 row-span-1 aspect-video"
+                        isVertical ? "row-span-2 col-span-1 h-full" : "col-span-1 row-span-1 aspect-[4/3]"
                       }`}
                       style={{
                         cursor: "grab",
@@ -868,7 +868,7 @@ export default function AdminPage() {
                   );
                 })}
                 {replicaFilteredItems.length === 0 && (
-                  <div style={{ gridColumn: "span 3", textAlign: "center", padding: "3rem", border: "1px dashed rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.01)" }}>
+                  <div style={{ gridColumn: "span 4", textAlign: "center", padding: "3rem", border: "1px dashed rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.01)" }}>
                     <span style={{ fontSize: 9, fontFamily: "Space Mono,monospace", color: "rgba(255,255,255,0.3)", letterSpacing: "0.2em" }}>
                       NO PROJECTS MATCHING FILTER
                     </span>
