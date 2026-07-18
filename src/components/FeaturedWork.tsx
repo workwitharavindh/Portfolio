@@ -129,12 +129,36 @@ export default function FeaturedWork({
     });
   }, [uniqueItems, activeCategory, activeSubcategory]);
 
-  // Visible items calculation based on limitRows in 4-column grid (uniform sizing)
+  // Visible items calculation based on limitRows in 4-column grid
+  // Vertical items consume 2 row-slots, horizontal items consume 1
   const getVisibleItemsForRows = React.useCallback((itemsList: PortfolioItem[], maxRows: number) => {
-    const itemsPerRow = 4;
-    const maxItems = maxRows * itemsPerRow;
-    const visible = itemsList.slice(0, maxItems);
-    const hasMore = itemsList.length > maxItems;
+    const colHeights = [0, 0, 0, 0];
+    const visible: PortfolioItem[] = [];
+    let hasMore = false;
+
+    for (const item of itemsList) {
+      const isVertical = item.layout === "Vertical";
+      const itemHeight = isVertical ? 2 : 1;
+
+      // Find column with minimum height
+      let minColIdx = 0;
+      let minHeight = colHeights[0];
+      for (let i = 1; i < 4; i++) {
+        if (colHeights[i] < minHeight) {
+          minHeight = colHeights[i];
+          minColIdx = i;
+        }
+      }
+
+      if (colHeights[minColIdx] + itemHeight <= maxRows) {
+        colHeights[minColIdx] += itemHeight;
+        visible.push(item);
+      } else {
+        hasMore = true;
+        break;
+      }
+    }
+
     return { visible, hasMore };
   }, []);
 
@@ -244,7 +268,7 @@ export default function FeaturedWork({
         )}
 
         {/* Grid: 1-col stacked on mobile, 3-col mixed on desktop */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-6xl mx-auto w-full relative min-h-[300px]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-6xl mx-auto w-full relative min-h-[300px]" style={{ gridAutoRows: 'minmax(0, 1fr)' }}>
           {visibleItems.map((item) => {
             const isVertical = item.layout === "Vertical";
 
@@ -254,11 +278,11 @@ export default function FeaturedWork({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: [0.215, 0.61, 0.355, 1] as const }}
-                className="w-full flex flex-col group col-span-1"
+                className={`w-full flex flex-col group col-span-1 ${isVertical ? 'row-span-2' : 'row-span-1'}`}
               >
                 {/* Visual Frame Block */}
                 <div
-                  className="a-product-card w-full relative overflow-hidden bg-[#181818] cursor-pointer aspect-[4/3]"
+                  className={`a-product-card w-full relative overflow-hidden bg-[#181818] cursor-pointer ${isVertical ? 'h-full' : 'aspect-[4/3]'}`}
                   onMouseEnter={() => handleMouseEnter(item.id)}
                   onMouseLeave={() => handleMouseLeave(item.id)}
                   onClick={() => onPlay(item)}
