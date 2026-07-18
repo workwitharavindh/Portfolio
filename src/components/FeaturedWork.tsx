@@ -281,7 +281,7 @@ export default function FeaturedWork({
               >
                 {/* Visual Frame Block */}
                 <div
-                  className={`a-product-card w-full relative overflow-hidden bg-[#181818] cursor-pointer ${isVertical ? 'aspect-[9/17.5] md:aspect-[9/17.5]' : 'aspect-[4/3]'}`}
+                  className={`a-product-card w-full relative overflow-hidden bg-[#181818] cursor-pointer ${isVertical ? 'aspect-[9/16] md:aspect-[9/16]' : 'aspect-[4/3]'}`}
                   onMouseEnter={() => handleMouseEnter(item.id)}
                   onMouseLeave={() => handleMouseLeave(item.id)}
                   onClick={() => onPlay(item)}
