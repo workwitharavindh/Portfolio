@@ -813,7 +813,7 @@ export default function AdminPage() {
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, item)}
                       className={`relative overflow-hidden group select-none border border-white/5 bg-[#121212] transition-transform duration-250 ${
-                        isVertical ? "row-span-2 col-span-1 aspect-[9/16]" : "col-span-1 row-span-1 aspect-[4/3]"
+                        isVertical ? "row-span-2 col-span-1 aspect-[9/14]" : "col-span-1 row-span-1 aspect-[4/3]"
                       }`}
                       style={{
                         cursor: "grab",
