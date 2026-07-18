@@ -30,7 +30,8 @@ interface PortfolioItem {
 }
 
 export default function Home() {
-  const [loading, setLoading] = useState(true);
+  const [loaderFinished, setLoaderFinished] = useState(false);
+  const [configLoaded, setConfigLoaded] = useState(false);
   const [config, setConfig] = useState<any>(defaultConfig);
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>(defaultConfig.portfolioItems as PortfolioItem[]);
   const [playItem, setPlayItem] = useState<PortfolioItem | null>(null);
@@ -61,8 +62,10 @@ export default function Home() {
           setConfig(data);
           setPortfolioItems((data.portfolioItems ?? defaultConfig.portfolioItems) as PortfolioItem[]);
         }
-      } catch {
-        // Fall back to static config
+      } catch (err) {
+        console.warn("Error fetching config:", err);
+      } finally {
+        setConfigLoaded(true);
       }
     };
     fetchConfig();
@@ -154,15 +157,17 @@ export default function Home() {
     return [h, m, s].map(v => String(v).padStart(2, "0")).join(":");
   };
 
+  const isScreenLoading = !loaderFinished || !configLoaded;
+
   return (
     <>
       {/* Preloader split-reveal */}
       <AnimatePresence mode="wait">
-        {loading && <Loader onComplete={() => setLoading(false)} />}
+        {!loaderFinished && <Loader onComplete={() => setLoaderFinished(true)} />}
       </AnimatePresence>
 
       {/* Main Experience Layout */}
-      {!loading && (
+      {!isScreenLoading && (
         <>
           {/* Global Background Video (Fixed and transparent with scroll-parallax scaling) */}
           <motion.video
