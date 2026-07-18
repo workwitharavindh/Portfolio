@@ -27,6 +27,9 @@ export default function Footer({ name }: { name: string }) {
               [ADMIN CONTROL]
             </a>
             <span className="font-mono text-[8px] md:text-[9px] tracking-[0.25em] uppercase">
+              Designed & maintained by <a href="https://wa.me/917708414584" target="_blank" rel="noopener noreferrer" className="text-white/65 hover:text-[#f73a0b] transition-colors" data-mouse="link">@arasukirubanandhan</a>
+            </span>
+            <span className="font-mono text-[8px] md:text-[9px] tracking-[0.25em] uppercase">
               (2026 © All rights reserved)
             </span>
           </div>
@@ -48,6 +51,9 @@ export default function Footer({ name }: { name: string }) {
           >
             [ADMIN CONTROL]
           </a>
+          <span className="font-mono text-[8px] tracking-[0.18em] uppercase text-white/40">
+            Designed & maintained by <a href="https://wa.me/917708414584" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-[#f73a0b] transition-colors">@arasukirubanandhan</a>
+          </span>
           <span className="font-mono text-[8px] tracking-[0.18em] uppercase text-white/30 pt-1">
             (2026 © All rights reserved)
           </span>
