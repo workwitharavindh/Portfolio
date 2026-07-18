@@ -797,7 +797,7 @@ export default function AdminPage() {
               )}
 
               {/* Replica Grid Container */}
-              <div className="grid grid-cols-4 gap-4 w-full relative min-h-[150px]" style={{ gridAutoRows: 'minmax(0, 1fr)' }}>
+              <div className="grid grid-cols-4 gap-4 w-full relative min-h-[150px]">
                 {replicaFilteredItems.map((item) => {
                   const isVertical = item.layout === "Vertical";
                   const driveMatch = item.thumbnailUrl?.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
@@ -813,7 +813,7 @@ export default function AdminPage() {
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, item)}
                       className={`relative overflow-hidden group select-none border border-white/5 bg-[#121212] transition-transform duration-250 ${
-                        isVertical ? "row-span-2 col-span-1 h-full" : "col-span-1 row-span-1 aspect-[4/3]"
+                        isVertical ? "row-span-2 col-span-1 aspect-[9/17.5]" : "col-span-1 row-span-1 aspect-[4/3]"
                       }`}
                       style={{
                         cursor: "grab",

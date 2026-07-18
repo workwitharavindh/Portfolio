@@ -267,8 +267,7 @@ export default function FeaturedWork({
           </div>
         )}
 
-        {/* Grid: 1-col stacked on mobile, 3-col mixed on desktop */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-6xl mx-auto w-full relative min-h-[300px]" style={{ gridAutoRows: 'minmax(0, 1fr)' }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-6xl mx-auto w-full relative min-h-[300px]">
           {visibleItems.map((item) => {
             const isVertical = item.layout === "Vertical";
 
@@ -282,7 +281,7 @@ export default function FeaturedWork({
               >
                 {/* Visual Frame Block */}
                 <div
-                  className={`a-product-card w-full relative overflow-hidden bg-[#181818] cursor-pointer ${isVertical ? 'h-full' : 'aspect-[4/3]'}`}
+                  className={`a-product-card w-full relative overflow-hidden bg-[#181818] cursor-pointer ${isVertical ? 'aspect-[9/17.5] md:aspect-[9/17.5]' : 'aspect-[4/3]'}`}
                   onMouseEnter={() => handleMouseEnter(item.id)}
                   onMouseLeave={() => handleMouseLeave(item.id)}
                   onClick={() => onPlay(item)}
