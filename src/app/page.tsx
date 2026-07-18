@@ -276,8 +276,8 @@ export default function Home() {
                         onClick={togglePlay}
                         className="max-w-full max-h-full object-contain cursor-pointer"
                         style={playItem.layout === "Vertical"
-                          ? { height: "100%", width: "auto", aspectRatio: "9/16", maxHeight: "75vh", maxWidth: "100%" }
-                          : { height: "auto", width: "100%", maxWidth: "960px", aspectRatio: "16/9" }
+                          ? { width: "100%", maxWidth: "420px", aspectRatio: "9/16", maxHeight: "72vh" }
+                          : { width: "100%", maxWidth: "960px", aspectRatio: "16/9", maxHeight: "72vh" }
                         }
                       />
                     );
@@ -288,13 +288,10 @@ export default function Home() {
                         title={playItem.title}
                         allow="autoplay; encrypted-media; picture-in-picture"
                         allowFullScreen
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          border: "none",
-                          maxWidth: "960px",
-                          aspectRatio: "16/9",
-                        }}
+                        style={playItem.layout === "Vertical"
+                          ? { width: "100%", maxWidth: "420px", aspectRatio: "9/16", maxHeight: "72vh", border: "none" }
+                          : { width: "100%", maxWidth: "960px", aspectRatio: "16/9", maxHeight: "72vh", border: "none" }
+                        }
                       />
                     );
                   } else {
@@ -306,8 +303,8 @@ export default function Home() {
                         title={playItem.title}
                         autoPlay={true}
                         style={playItem.layout === "Vertical"
-                          ? { height: "100%", width: "auto", aspectRatio: "9/16", maxHeight: "75vh", maxWidth: "100%" }
-                          : { height: "auto", width: "100%", maxWidth: "960px", aspectRatio: "16/9" }
+                          ? { width: "100%", maxWidth: "420px", aspectRatio: "9/16", maxHeight: "72vh" }
+                          : { width: "100%", maxWidth: "960px", aspectRatio: "16/9", maxHeight: "72vh" }
                         }
                       />
                     );
