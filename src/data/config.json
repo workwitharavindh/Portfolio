@@ -27,6 +27,50 @@
     "testimonials": true,
     "contact": true
   },
+  "organisations": [
+    {
+      "id": "org-1",
+      "name": "Sony Pictures",
+      "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg",
+      "displayOrder": 1,
+      "active": true
+    },
+    {
+      "id": "org-2",
+      "name": "Netflix",
+      "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg",
+      "displayOrder": 2,
+      "active": true
+    },
+    {
+      "id": "org-3",
+      "name": "Red Bull Media",
+      "logoUrl": "https://upload.wikimedia.org/wikipedia/en/f/f5/RedBullEnergyDrink.svg",
+      "displayOrder": 3,
+      "active": true
+    },
+    {
+      "id": "org-4",
+      "name": "Warner Bros",
+      "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/6/64/Warner_Bros_logo.svg",
+      "displayOrder": 4,
+      "active": true
+    },
+    {
+      "id": "org-5",
+      "name": "Nike",
+      "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg",
+      "displayOrder": 5,
+      "active": true
+    },
+    {
+      "id": "org-6",
+      "name": "Spotify Studios",
+      "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg",
+      "displayOrder": 6,
+      "active": true
+    }
+  ],
   "aboutImageUrl": "/assets/images/profile.png",
   "aboutText": "BEHIND EVERY VIRAL VIDEO IS A STORY WORTH TELLING. With years of experience working with top-tier creators and luxury brands, I bring cinematic flare, precision pacing, and high-retention editing structures to every project. I construct stories, orchestrate tension, and engineer engagement that converts passive viewers into active followers.",
   "aboutTimeline": [

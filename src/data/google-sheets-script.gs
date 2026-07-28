@@ -69,6 +69,15 @@ var DEFAULT_PROJECTS = [
   }
 ];
 
+var DEFAULT_ORGANISATIONS = [
+  { id: "org-1", name: "Sony Pictures", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg", displayOrder: 1, active: "true" },
+  { id: "org-2", name: "Netflix", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg", displayOrder: 2, active: "true" },
+  { id: "org-3", name: "Red Bull Media", logoUrl: "https://upload.wikimedia.org/wikipedia/en/f/f5/RedBullEnergyDrink.svg", displayOrder: 3, active: "true" },
+  { id: "org-4", name: "Warner Bros", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/6/64/Warner_Bros_logo.svg", displayOrder: 4, active: "true" },
+  { id: "org-5", name: "Nike", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg", displayOrder: 5, active: "true" },
+  { id: "org-6", name: "Spotify Studios", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg", displayOrder: 6, active: "true" }
+];
+
 function doGet(e) {
   var action = e && e.parameter && e.parameter.action;
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -191,6 +200,20 @@ function initSheets(ss) {
       subcategoriesSheet.appendRow(defaultSubcats[m]);
     }
   }
+
+  // 5. Organisations Sheet (Stores previous organisations logos)
+  var orgsSheet = ss.getSheetByName("Organisations");
+  if (!orgsSheet) {
+    orgsSheet = ss.insertSheet("Organisations");
+    orgsSheet.appendRow(["ID", "Name", "LogoUrl", "DisplayOrder", "Active"]);
+  }
+  var orgsRows = orgsSheet.getLastRow();
+  if (orgsRows <= 1) {
+    for (var n = 0; n < DEFAULT_ORGANISATIONS.length; n++) {
+      var org = DEFAULT_ORGANISATIONS[n];
+      orgsSheet.appendRow([org.id, org.name, org.logoUrl, org.displayOrder, org.active]);
+    }
+  }
   
   // Remove default "Sheet1" if it is present and empty
   var sheet1 = ss.getSheetByName("Sheet1");
@@ -249,6 +272,23 @@ function getConfiguration(ss) {
       }
     }
   }
+
+  var orgsSheet = ss.getSheetByName("Organisations");
+  var organisations = [];
+  if (orgsSheet) {
+    var orgsData = orgsSheet.getDataRange().getValues();
+    for (var o = 1; o < orgsData.length; o++) {
+      if (orgsData[o][0] || orgsData[o][1]) {
+        organisations.push({
+          id: orgsData[o][0] ? orgsData[o][0].toString() : "org-" + o,
+          name: orgsData[o][1] ? orgsData[o][1].toString() : "",
+          logoUrl: orgsData[o][2] ? orgsData[o][2].toString() : "",
+          displayOrder: orgsData[o][3] !== "" && !isNaN(Number(orgsData[o][3])) ? Number(orgsData[o][3]) : o,
+          active: orgsData[o][4] === true || orgsData[o][4].toString().toLowerCase() === "true" || orgsData[o][4] === ""
+        });
+      }
+    }
+  }
   
   return {
     aboutImageUrl: settings.aboutImageUrl || "",
@@ -261,7 +301,8 @@ function getConfiguration(ss) {
     },
     categories: categories.length > 0 ? categories : undefined,
     subcategories: subcategories,
-    portfolioItems: portfolioItems
+    portfolioItems: portfolioItems,
+    organisations: organisations
   };
 }
 
@@ -360,6 +401,31 @@ function saveConfiguration(ss, data) {
         item.isFeatured !== undefined ? item.isFeatured.toString() : "false",
         item.subcategory || ""
       ]);
+    }
+  }
+
+  // 5. Save Organisations
+  var orgsSheet = ss.getSheetByName("Organisations");
+  if (!orgsSheet) {
+    orgsSheet = ss.insertSheet("Organisations");
+    orgsSheet.appendRow(["ID", "Name", "LogoUrl", "DisplayOrder", "Active"]);
+  }
+  if (data.organisations && Array.isArray(data.organisations)) {
+    var lastOrgRow = orgsSheet.getLastRow();
+    if (lastOrgRow > 1) {
+      orgsSheet.deleteRows(2, lastOrgRow - 1);
+    }
+    for (var n = 0; n < data.organisations.length; n++) {
+      var org = data.organisations[n];
+      if (org) {
+        orgsSheet.appendRow([
+          org.id || "org-" + (n + 1),
+          org.name || "",
+          org.logoUrl || "",
+          org.displayOrder !== undefined ? org.displayOrder : (n + 1),
+          org.active !== false ? "true" : "false"
+        ]);
+      }
     }
   }
 }

@@ -8,6 +8,7 @@ import Hero from "@/components/Hero";
 import FeaturedWork from "@/components/FeaturedWork";
 import About from "@/components/About";
 import Services from "@/components/Services";
+import PreviousOrganisations, { Organisation } from "@/components/PreviousOrganisations";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import MediaEmbed from "@/components/MediaEmbed";
@@ -225,6 +226,9 @@ export default function Home() {
 
             {/* What I Do - typographic services rows */}
             <Services services={config.services ?? []} />
+
+            {/* Brands & Previous Organisations continuous marquee */}
+            <PreviousOrganisations organisations={config.organisations ?? []} />
 
             {/* Connect - SVG contact page */}
             <Contact

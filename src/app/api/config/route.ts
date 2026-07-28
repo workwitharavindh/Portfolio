@@ -63,6 +63,25 @@ function cleanPortfolioItems(items: unknown[]): unknown[] {
   });
 }
 
+function cleanOrganisations(orgs: unknown[]): unknown[] {
+  if (!Array.isArray(orgs)) return [];
+  const list = orgs.map((item: unknown) => {
+    const o = item as Record<string, unknown>;
+    const logoUrl = typeof o.logoUrl === "string" ? o.logoUrl : (typeof o.organisationLogoUrl === "string" ? o.organisationLogoUrl : "");
+    const active = o.active !== false && o.active !== "false";
+    const displayOrder = typeof o.displayOrder === "number" ? o.displayOrder : parseInt(String(o.displayOrder ?? "0"), 10) || 0;
+    return {
+      id: typeof o.id === "string" ? o.id : `org-${Math.random()}`,
+      name: typeof o.name === "string" ? o.name : "",
+      logoUrl: resolveDriveThumbnail(logoUrl),
+      displayOrder,
+      active
+    };
+  });
+  
+  return list.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+}
+
 // ── GET ───────────────────────────────────────────────────────────────────────
 export async function GET() {
   // 1. Try Google Sheets first if URL is configured
@@ -87,6 +106,11 @@ export async function GET() {
               ? sheetsData.portfolioItems
               : base.portfolioItems
           ),
+          organisations: cleanOrganisations(
+            sheetsData.organisations?.length
+              ? sheetsData.organisations
+              : base.organisations ?? []
+          )
         };
         return NextResponse.json(merged);
       }
@@ -101,7 +125,8 @@ export async function GET() {
   const cleaned = {
     ...local,
     aboutImageUrl: resolveDriveThumbnail(local.aboutImageUrl ?? ""),
-    portfolioItems: cleanPortfolioItems(local.portfolioItems ?? [])
+    portfolioItems: cleanPortfolioItems(local.portfolioItems ?? []),
+    organisations: cleanOrganisations(local.organisations ?? [])
   };
   return NextResponse.json(cleaned);
 }

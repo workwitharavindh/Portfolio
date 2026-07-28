@@ -126,6 +126,14 @@ interface ProjectEntry {
   layout?: "Horizontal" | "Vertical";
 }
 
+interface OrganisationEntry {
+  id: string;
+  name: string;
+  logoUrl: string;
+  displayOrder: number;
+  active: boolean;
+}
+
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -144,6 +152,7 @@ export default function AdminPage() {
   const [newSubcategory, setNewSubcategory] = useState("");
   const [subcategories, setSubcategories] = useState<{ category: string; name: string }[]>([]);
   const [projects, setProjects] = useState<ProjectEntry[]>([]);
+  const [organisations, setOrganisations] = useState<OrganisationEntry[]>([]);
 
   // Project list filter states
   const [filterText, setFilterText] = useState("");
@@ -284,6 +293,15 @@ export default function AdminPage() {
         const fetchedSubcats = data.subcategories ?? [];
         setSubcategories(fetchedSubcats);
 
+        const fetchedOrgs = data.organisations ?? [];
+        setOrganisations(fetchedOrgs.map((o: any, i: number) => ({
+          id: o.id || `org-${Date.now()}-${i}`,
+          name: o.name || "",
+          logoUrl: o.logoUrl || o.organisationLogoUrl || "",
+          displayOrder: typeof o.displayOrder === "number" ? o.displayOrder : i + 1,
+          active: o.active !== false
+        })));
+
         const items = data.portfolioItems ?? [];
         const mapped: ProjectEntry[] = items.length > 0
           ? items.map((item: any, i: number) => ({
@@ -335,6 +353,14 @@ export default function AdminPage() {
         };
       });
 
+      const cleanedOrganisations = organisations.map((org, i) => ({
+        id: org.id || `org-${Date.now()}-${i}`,
+        name: org.name?.trim() || "",
+        logoUrl: org.logoUrl?.trim() || "",
+        displayOrder: typeof org.displayOrder === "number" ? org.displayOrder : (i + 1),
+        active: org.active !== false
+      }));
+
       const payload = {
         ...existing,
         aboutImageUrl,
@@ -342,6 +368,7 @@ export default function AdminPage() {
         portfolioItems,
         categories,
         subcategories,
+        organisations: cleanedOrganisations,
       };
 
       const res = await fetch("/api/config", {
@@ -357,6 +384,29 @@ export default function AdminPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleAddOrganisation = () => {
+    setOrganisations(prev => [
+      ...prev,
+      {
+        id: `org-${Date.now()}`,
+        name: "",
+        logoUrl: "",
+        displayOrder: prev.length + 1,
+        active: true
+      }
+    ]);
+    showToast("Added new organisation field", true);
+  };
+
+  const updateOrganisation = (idx: number, field: keyof OrganisationEntry, value: any) => {
+    setOrganisations(prev => prev.map((org, i) => i === idx ? { ...org, [field]: value } : org));
+  };
+
+  const handleDeleteOrganisation = (idxToDelete: number) => {
+    setOrganisations(prev => prev.filter((_, idx) => idx !== idxToDelete));
+    showToast("Removed organisation", true);
   };
 
   const updateProject = (idx: number, field: keyof ProjectEntry, value: string) => {
@@ -1103,6 +1153,180 @@ export default function AdminPage() {
                 >
                   + Add New Video Project
                 </button>
+              </div>
+            </section>
+
+            {/* ── Manage Previous Organisations ───────────────────────────────── */}
+            <section style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "2.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                <div>
+                  <h2 style={{ ...sectionHeadingStyle, marginBottom: "0.25rem", borderBottom: "none", paddingBottom: 0 }}>
+                    Previous Organisations & Logos
+                  </h2>
+                  <p style={{ fontFamily: "Space Mono,monospace", fontSize: 9, color: "rgba(240,240,240,0.3)", letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>
+                    Manage brand logos rendered in the continuous horizontal marquee above Contact.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddOrganisation}
+                  style={{
+                    padding: "0.6rem 1.25rem",
+                    background: "#e63946",
+                    color: "#fff",
+                    border: "none",
+                    fontFamily: "Space Mono,monospace",
+                    fontSize: 10,
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem"
+                  }}
+                >
+                  + Add Organisation
+                </button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                {organisations.map((org, idx) => (
+                  <div
+                    key={org.id}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "110px 1fr 2fr 80px 70px 40px",
+                      gap: "1rem",
+                      alignItems: "center",
+                      padding: "1.25rem",
+                      background: "rgba(255,255,255,0.02)",
+                      border: "1px solid rgba(255,255,255,0.07)",
+                      borderRadius: "4px"
+                    }}
+                  >
+                    {/* Logo preview box */}
+                    <div
+                      style={{
+                        width: 110,
+                        height: 64,
+                        background: "#000",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: 6,
+                        overflow: "hidden",
+                        borderRadius: 4
+                      }}
+                    >
+                      {org.logoUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={org.logoUrl}
+                          alt={org.name || "Preview"}
+                          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                            const parent = (e.target as HTMLElement).parentElement;
+                            if (parent && !parent.querySelector(".fallback-preview")) {
+                              const fallback = document.createElement("span");
+                              fallback.className = "fallback-preview";
+                              fallback.style.fontFamily = "Space Mono, monospace";
+                              fallback.style.fontSize = "9px";
+                              fallback.style.color = "#e63946";
+                              fallback.style.textAlign = "center";
+                              fallback.innerText = org.name || "Invalid Logo";
+                              parent.appendChild(fallback);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span style={{ fontFamily: "Space Mono,monospace", fontSize: 9, color: "rgba(255,255,255,0.3)" }}>
+                          No Logo
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Organisation Name */}
+                    <div style={fieldStyle}>
+                      <label style={labelStyle}>Organisation Name</label>
+                      <input
+                        type="text"
+                        value={org.name}
+                        onChange={e => updateOrganisation(idx, "name", e.target.value)}
+                        placeholder="e.g. Sony Pictures"
+                        style={inputStyle}
+                        onFocus={e => (e.target.style.borderColor = "#e63946")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                      />
+                    </div>
+
+                    {/* Logo URL */}
+                    <div style={fieldStyle}>
+                      <label style={labelStyle}>Logo Image URL (Direct or Google Drive)</label>
+                      <input
+                        type="text"
+                        value={org.logoUrl}
+                        onChange={e => updateOrganisation(idx, "logoUrl", e.target.value)}
+                        placeholder="https://upload.wikimedia.org/... or Drive URL"
+                        style={inputStyle}
+                        onFocus={e => (e.target.style.borderColor = "#e63946")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                      />
+                    </div>
+
+                    {/* Display Order */}
+                    <div style={fieldStyle}>
+                      <label style={labelStyle}>Order</label>
+                      <input
+                        type="number"
+                        value={org.displayOrder}
+                        onChange={e => updateOrganisation(idx, "displayOrder", parseInt(e.target.value, 10) || 0)}
+                        style={inputStyle}
+                        onFocus={e => (e.target.style.borderColor = "#e63946")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+                      />
+                    </div>
+
+                    {/* Active Toggle */}
+                    <div style={{ ...fieldStyle, alignItems: "center", justifyContent: "center" }}>
+                      <label style={labelStyle}>Visible</label>
+                      <input
+                        type="checkbox"
+                        checked={org.active}
+                        onChange={e => updateOrganisation(idx, "active", e.target.checked)}
+                        style={{ width: 16, height: 16, cursor: "pointer", accentColor: "#e63946", marginTop: 4 }}
+                      />
+                    </div>
+
+                    {/* Delete Action */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteOrganisation(idx)}
+                        title="Delete Organisation"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "rgba(255,255,255,0.3)",
+                          cursor: "pointer",
+                          fontSize: 16,
+                          padding: "0.25rem"
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "#e63946")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {organisations.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "2rem", border: "1px dashed rgba(255,255,255,0.1)", fontFamily: "Space Mono,monospace", fontSize: 10, color: "rgba(240,240,240,0.3)" }}>
+                    No organisations added yet. Click "+ Add Organisation" above to create one.
+                  </div>
+                )}
               </div>
             </section>
 
